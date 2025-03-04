@@ -100,44 +100,58 @@ try:
 
             # Get unique members and their donation summaries
             unique_members = donations['member_name'].unique()
+            member_totals = []
             for member in unique_members:
                 summary = data_manager.get_member_donation_summary(member)
-
                 if summary:
-                    with st.expander(f"{member} - Total: {summary['total_amount']:,.0f} gil ({summary['donation_count']} donations)"):
-                        st.write(f"First Donation: {summary['first_donation']}")
-                        st.write(f"Last Donation: {summary['last_donation']}")
+                    member_totals.append({
+                        'member_name': member,
+                        'total_amount': summary['total_amount'],
+                        'summary': summary
+                    })
 
-                        # Shared notes for all member's donations
-                        sample_donation = summary['donations'][0]
-                        new_notes = st.text_area(
-                            "Notes (applies to all donations)",
-                            value=sample_donation['notes'] if pd.notna(sample_donation['notes']) else "",
-                            key=f"notes_{member}"
-                        )
+            # Sort members by total donation amount (highest to lowest)
+            member_totals.sort(key=lambda x: x['total_amount'], reverse=True)
 
-                        if st.button("Update Notes", key=f"update_{member}"):
-                            if data_manager.update_member_donations_notes(member, new_notes):
-                                st.success("Notes updated successfully!")
-                                st.rerun()
-                            else:
-                                st.error("Failed to update notes")
+            # Display sorted donations
+            for member_data in member_totals:
+                member = member_data['member_name']
+                summary = member_data['summary']
 
-                        st.write("---")
-                        st.write("Donation History:")
+                with st.expander(f"{member} - Total: {summary['total_amount']:,.0f} gil ({summary['donation_count']} donations)"):
+                    st.write(f"First Donation: {summary['first_donation']}")
+                    st.write(f"Last Donation: {summary['last_donation']}")
 
-                        # Show individual donations without individual notes
-                        for donation in summary['donations']:
-                            col1, col2 = st.columns([3, 1])
-                            with col1:
-                                st.write(f"Amount: {donation['amount']:,.0f} gil - Date: {donation['date']}")
-                            with col2:
-                                if st.button("🗑️ Delete", key=f"delete_{donation['timestamp']}", type="secondary"):
-                                    if data_manager.delete_donation(donation['timestamp']):
-                                        st.success("Donation deleted successfully!")
-                                        st.rerun()
-                                    else:
-                                        st.error("Failed to delete donation")
+                    # Shared notes for all member's donations
+                    sample_donation = summary['donations'][0]
+                    new_notes = st.text_area(
+                        "Notes (applies to all donations)",
+                        value=sample_donation['notes'] if pd.notna(sample_donation['notes']) else "",
+                        key=f"notes_{member}"
+                    )
+
+                    if st.button("Update Notes", key=f"update_{member}"):
+                        if data_manager.update_member_donations_notes(member, new_notes):
+                            st.success("Notes updated successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update notes")
+
+                    st.write("---")
+                    st.write("Donation History:")
+
+                    # Show individual donations without individual notes
+                    for donation in summary['donations']:
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            st.write(f"Amount: {donation['amount']:,.0f} gil - Date: {donation['date']}")
+                        with col2:
+                            if st.button("🗑️ Delete", key=f"delete_{donation['timestamp']}", type="secondary"):
+                                if data_manager.delete_donation(donation['timestamp']):
+                                    st.success("Donation deleted successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("Failed to delete donation")
         else:
             st.info("No donations recorded yet")
 
