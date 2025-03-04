@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Replit
+.breakpoints
+.replit/
+replit.nix
+.upm/
+.config/
+.cache/
+
+# Data files (since we want to persist these)
+!data/
+data/backups/
+
+# Environment variables
+.env
