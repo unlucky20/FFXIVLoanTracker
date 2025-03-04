@@ -50,7 +50,7 @@ try:
             if not donations.empty:
                 for idx, donation in donations.head(5).iterrows():
                     member_summary = data_manager.get_member_donation_summary(donation['member_name'])
-                    with st.expander(f"{donation['member_name']} - {donation['amount']:,.0f} gil"):
+                    with st.expander(f"💰 {donation['member_name']} - {donation['amount']:,.0f} gil", help=f"Click to see {donation['member_name']}'s donation history"):
                         st.markdown(f"<p class='donation-amount'>Total Lifetime Donations: {member_summary['total_amount']:,.0f} gil</p>", unsafe_allow_html=True)
                         st.write(f"Number of Donations: {member_summary['donation_count']}")
                         st.write(f"First Donation: {member_summary['first_donation']}")
@@ -65,7 +65,8 @@ try:
             expenses = data_manager.get_expenses_list()
             if not expenses.empty:
                 for _, expense in expenses.sort_values('date', ascending=False).head(5).iterrows():
-                    with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil"):
+                    with st.expander(f"📊 {expense['category']} - {expense['amount']:,.0f} gil", help="Click to see expense details"):
+                        st.markdown(f"<p class='expense-amount'>Amount: {expense['amount']:,.0f} gil</p>", unsafe_allow_html=True)
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
