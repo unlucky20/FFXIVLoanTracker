@@ -27,5 +27,13 @@ def apply_custom_styles():
             color: #ff4444;
             font-weight: bold;
         }
+        .donation-amount {
+            color: #4CAF50;  /* Readable green color */
+            font-weight: bold;
+        }
+        .expense-amount {
+            color: #F44336;  /* Readable red color */
+            font-weight: bold;
+        }
         </style>
     """, unsafe_allow_html=True)

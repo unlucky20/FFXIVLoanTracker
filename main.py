@@ -39,8 +39,8 @@ try:
             st.metric("Total Members", len(data_manager.get_all_members()))
 
         with col2:
-            st.metric("Total Donations", f"{stats['total_donations']:,.0f} gil")
-            st.metric("Total Expenses", f"{stats['total_expenses']:,.0f} gil")
+            st.markdown(f"<p class='donation-amount'>Total Donations: {stats['total_donations']:,.0f} gil</p>", unsafe_allow_html=True)
+            st.markdown(f"<p class='expense-amount'>Total Expenses: {stats['total_expenses']:,.0f} gil</p>", unsafe_allow_html=True)
 
         # Show recent activity
         col1, col2 = st.columns(2)
@@ -51,7 +51,7 @@ try:
                 for idx, donation in donations.head(5).iterrows():
                     member_summary = data_manager.get_member_donation_summary(donation['member_name'])
                     with st.expander(f"{donation['member_name']} - {donation['amount']:,.0f} gil"):
-                        st.write(f"Total Lifetime Donations: {member_summary['total_amount']:,.0f} gil")
+                        st.markdown(f"<p class='donation-amount'>Total Lifetime Donations: {member_summary['total_amount']:,.0f} gil</p>", unsafe_allow_html=True)
                         st.write(f"Number of Donations: {member_summary['donation_count']}")
                         st.write(f"First Donation: {member_summary['first_donation']}")
                         st.write(f"Latest Donation: {member_summary['last_donation']}")
