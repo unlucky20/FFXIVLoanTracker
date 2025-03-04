@@ -39,8 +39,8 @@ try:
             st.metric("Total Members", len(data_manager.get_all_members()))
 
         with col2:
-            st.markdown(f"<p class='donation-amount'>Total Donations: {stats['total_donations']:,.0f} gil</p>", unsafe_allow_html=True)
-            st.markdown(f"<p class='expense-amount'>Total Expenses: {stats['total_expenses']:,.0f} gil</p>", unsafe_allow_html=True)
+            st.metric("Total Donations", f"{stats['total_donations']:,.0f} gil")
+            st.metric("Total Expenses", f"{stats['total_expenses']:,.0f} gil")
 
         # Show recent activity
         col1, col2 = st.columns(2)
@@ -50,8 +50,8 @@ try:
             if not donations.empty:
                 for idx, donation in donations.head(5).iterrows():
                     member_summary = data_manager.get_member_donation_summary(donation['member_name'])
-                    with st.expander(f"💰 {donation['member_name']} - {donation['amount']:,.0f} gil", help=f"Click to see {donation['member_name']}'s donation history"):
-                        st.markdown(f"<p class='donation-amount'>Total Lifetime Donations: {member_summary['total_amount']:,.0f} gil</p>", unsafe_allow_html=True)
+                    with st.expander(f"{donation['member_name']} - {donation['amount']:,.0f} gil"):
+                        st.write(f"Total Lifetime Donations: {member_summary['total_amount']:,.0f} gil")
                         st.write(f"Number of Donations: {member_summary['donation_count']}")
                         st.write(f"First Donation: {member_summary['first_donation']}")
                         st.write(f"Latest Donation: {member_summary['last_donation']}")
@@ -65,8 +65,7 @@ try:
             expenses = data_manager.get_expenses_list()
             if not expenses.empty:
                 for _, expense in expenses.sort_values('date', ascending=False).head(5).iterrows():
-                    with st.expander(f"📊 {expense['category']} - {expense['amount']:,.0f} gil", help="Click to see expense details"):
-                        st.markdown(f"<p class='expense-amount'>Amount: {expense['amount']:,.0f} gil</p>", unsafe_allow_html=True)
+                    with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil"):
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
