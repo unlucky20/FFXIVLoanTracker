@@ -18,6 +18,10 @@ class DataManager:
         # Ensure data directory exists with proper permissions
         os.makedirs(self.data_dir, mode=0o755, exist_ok=True)
 
+        # Create backup directory
+        backup_dir = os.path.join(self.data_dir, "backups")
+        os.makedirs(backup_dir, mode=0o755, exist_ok=True)
+
         self.ensure_csv_exists()
         self.lodestone = LodestoneScraper(fc_id)
 
