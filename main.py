@@ -49,7 +49,9 @@ try:
             st.subheader("Recent Donations")
             donations = data_manager.get_donations()
             if not donations.empty:
-                for idx, donation in donations.head(5).iterrows():
+                # Sort by date and timestamp in descending order
+                donations = donations.sort_values(['date', 'timestamp'], ascending=[False, False])
+                for _, donation in donations.head(5).iterrows():
                     member_summary = data_manager.get_member_donation_summary(donation['member_name'])
                     with st.expander(f"{donation['member_name']} - {donation['amount']:,.0f} gil"):
                         st.write(f"Total Lifetime Donations: {member_summary['total_amount']:,.0f} gil")
