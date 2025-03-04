@@ -290,10 +290,18 @@ class DataManager:
     def add_expense(self, amount, description, category, approved_by):
         """Add a new expense"""
         try:
-            success = super().add_expense(amount, description, category, approved_by)
-            if success:
-                self.sync_to_git()
-            return success
+            df = pd.read_csv(self.expenses_path)
+            new_expense = {
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'amount': amount,
+                'description': description,
+                'category': category,
+                'approved_by': approved_by
+            }
+            df = pd.concat([df, pd.DataFrame([new_expense])], ignore_index=True)
+            df.to_csv(self.expenses_path, index=False)
+            self.sync_to_git()
+            return True
         except Exception as e:
             print(f"Error adding expense: {str(e)}")
             return False
@@ -316,10 +324,12 @@ class DataManager:
     def delete_expense(self, date, amount, description):
         """Delete an expense"""
         try:
-            success = super().delete_expense(date, amount, description)
-            if success:
-                self.sync_to_git()
-            return success
+            df = pd.read_csv(self.expenses_path)
+            mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
+            df = df[~mask]
+            df.to_csv(self.expenses_path, index=False)
+            self.sync_to_git()
+            return True
         except Exception as e:
             print(f"Error deleting expense: {str(e)}")
             return False
@@ -327,10 +337,12 @@ class DataManager:
     def update_expense_notes(self, date, amount, description, new_description):
         """Update expense description"""
         try:
-            success = super().update_expense_notes(date, amount, description, new_description)
-            if success:
-                self.sync_to_git()
-            return success
+            df = pd.read_csv(self.expenses_path)
+            mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
+            df.loc[mask, 'description'] = new_description
+            df.to_csv(self.expenses_path, index=False)
+            self.sync_to_git()
+            return True
         except Exception as e:
             print(f"Error updating expense notes: {str(e)}")
             return False
@@ -383,10 +395,24 @@ class DataManager:
     def delete_member(self, member_name):
         """Delete a member and their associated data"""
         try:
-            success = super().delete_member(member_name)
-            if success:
-                self.sync_to_git()
-            return success
+            # Remove from members list
+            members_df = pd.read_csv(self.members_path)
+            members_df = members_df[members_df['name'] != member_name]
+            members_df.to_csv(self.members_path, index=False)
+
+            # Remove their bids
+            bids_df = pd.read_csv(self.bids_path)
+            bids_df = bids_df[bids_df['member_name'] != member_name]
+            bids_df.to_csv(self.bids_path, index=False)
+
+            #Remove their donations
+            donations_df = pd.read_csv(self.donations_path)
+            donations_df = donations_df[donations_df['member_name'] != member_name]
+            donations_df.to_csv(self.donations_path, index=False)
+
+            # Sync changes to Git
+            self.sync_to_git()
+            return True
         except Exception as e:
             print(f"Error deleting member: {str(e)}")
             return False
