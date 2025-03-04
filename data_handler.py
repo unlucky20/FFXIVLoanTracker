@@ -144,10 +144,26 @@ class DataManager:
     def add_donation(self, member_name, amount, notes=""):
         """Add a new donation record"""
         try:
-            success = super().add_donation(member_name, amount, notes)
-            if success:
-                self.sync_to_git()
-            return success
+            df = pd.read_csv(self.donations_path)
+            current_date = datetime.now().strftime('%Y-%m-%d')
+
+            # Create unique timestamp based on date and current number of donations
+            timestamp = f"{current_date}_{len(df):03d}"
+
+            new_donation = {
+                'member_name': member_name,
+                'amount': amount,
+                'date': current_date,
+                'notes': notes,
+                'timestamp': timestamp
+            }
+
+            df = pd.concat([df, pd.DataFrame([new_donation])], ignore_index=True)
+            df.to_csv(self.donations_path, index=False)
+
+            # Sync to Git after successful addition
+            self.sync_to_git()
+            return True
         except Exception as e:
             print(f"Error adding donation: {str(e)}")
             return False
@@ -155,10 +171,13 @@ class DataManager:
     def delete_donation(self, timestamp):
         """Delete a donation record"""
         try:
-            success = super().delete_donation(timestamp)
-            if success:
-                self.sync_to_git()
-            return success
+            df = self.migrate_timestamps()
+            df = df[df['timestamp'] != timestamp]
+            df.to_csv(self.donations_path, index=False)
+
+            # Sync to Git after successful deletion
+            self.sync_to_git()
+            return True
         except Exception as e:
             print(f"Error deleting donation: {str(e)}")
             return False
@@ -166,10 +185,13 @@ class DataManager:
     def update_donation_notes(self, timestamp, new_notes):
         """Update donation notes"""
         try:
-            success = super().update_donation_notes(timestamp, new_notes)
-            if success:
-                self.sync_to_git()
-            return success
+            df = self.migrate_timestamps()
+            df.loc[df['timestamp'] == timestamp, 'notes'] = new_notes
+            df.to_csv(self.donations_path, index=False)
+
+            # Sync to Git after successful update
+            self.sync_to_git()
+            return True
         except Exception as e:
             print(f"Error updating donation notes: {str(e)}")
             return False
