@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 from data_handler import DataManager
 from styles import apply_custom_styles
 from datetime import datetime
@@ -348,7 +349,35 @@ try:
 
     # Footer
     st.markdown("---")
-    st.markdown("<p style='text-align: center'>Lotus Free Company</p>", unsafe_allow_html=True)
+
+    footer_col1, footer_col2, footer_col3 = st.columns(3)
+
+    with footer_col1:
+        if st.button("📥 Export Data"):
+            zip_path = data_manager.export_data_to_zip()
+            if zip_path:
+                with open(zip_path, 'rb') as f:
+                    st.download_button(
+                        label="Download Data",
+                        data=f,
+                        file_name=os.path.basename(zip_path),
+                        mime="application/zip"
+                    )
+            else:
+                st.error("Failed to export data")
+
+    with footer_col2:
+        uploaded_file = st.file_uploader("📤 Import Data", type="zip")
+        if uploaded_file:
+            if data_manager.import_data_from_zip(uploaded_file):
+                st.success("Data imported successfully!")
+                st.rerun()
+            else:
+                st.error("Failed to import data")
+
+    with footer_col3:
+        st.markdown("<p style='text-align: center'>Lotus Free Company</p>", unsafe_allow_html=True)
+
 except Exception as e:
     st.error(f"Error initializing application: {str(e)}")
     st.info("If this error persists, please contact support.")

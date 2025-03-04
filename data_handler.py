@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from lodestone_scraper import LodestoneScraper
 import shutil
+import zipfile
 
 class DataManager:
     def __init__(self, fc_id="9228157111459014466"):
@@ -351,4 +352,46 @@ class DataManager:
             return True
         except Exception as e:
             print(f"Error deleting member: {str(e)}")
+            return False
+
+    def export_data_to_zip(self):
+        """Export all data files to a zip file"""
+        try:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            zip_path = os.path.join(self.data_dir, f"fc_data_export_{timestamp}.zip")
+
+            with zipfile.ZipFile(zip_path, 'w') as zipf:
+                for file_name in ["donations.csv", "members.csv", "expenses.csv", "bids.csv"]:
+                    file_path = os.path.join(self.data_dir, file_name)
+                    if os.path.exists(file_path):
+                        zipf.write(file_path, file_name)
+
+            return zip_path
+        except Exception as e:
+            print(f"Error exporting data: {str(e)}")
+            return None
+
+    def import_data_from_zip(self, zip_file):
+        """Import data from a zip file"""
+        try:
+            # Create a backup before import
+            self.backup_data()
+
+            with zipfile.ZipFile(zip_file, 'r') as zipf:
+                # Verify zip contains required files
+                file_list = zipf.namelist()
+                required_files = ["donations.csv", "members.csv", "expenses.csv", "bids.csv"]
+
+                if not all(file in file_list for file in required_files):
+                    raise ValueError("Zip file missing required data files")
+
+                # Extract files to data directory
+                for file_name in required_files:
+                    zipf.extract(file_name, self.data_dir)
+
+            return True
+        except Exception as e:
+            print(f"Error importing data: {str(e)}")
+            # Restore from backup if import fails
+            self.restore_latest_backup()
             return False
