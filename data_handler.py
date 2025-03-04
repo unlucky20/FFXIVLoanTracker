@@ -14,16 +14,16 @@ class DataManager:
         self.expenses_path = os.path.join(self.data_dir, "expenses.csv")
         self.bids_path = os.path.join(self.data_dir, "bids.csv")
         self.expense_categories = ['Housing', 'Giveaways', 'Events', 'Crafting', 'Other']
+
+        # Ensure data directory exists with proper permissions
+        os.makedirs(self.data_dir, mode=0o755, exist_ok=True)
+
         self.ensure_csv_exists()
         self.lodestone = LodestoneScraper(fc_id)
 
     def ensure_csv_exists(self):
         """Initialize CSV files if they don't exist"""
-        # Create data directory if it doesn't exist
         try:
-            if not os.path.exists(self.data_dir):
-                os.makedirs(self.data_dir)
-
             # Initialize CSV files with default structure
             default_files = {
                 self.members_path: ['name', 'join_date'],
@@ -36,6 +36,12 @@ class DataManager:
                 if not os.path.exists(file_path):
                     df = pd.DataFrame(columns=columns)
                     df.to_csv(file_path, index=False)
+                else:
+                    # Verify file is readable and writable
+                    with open(file_path, 'r') as f:
+                        pd.read_csv(f)  # Test read
+                    with open(file_path, 'a') as f:
+                        f.write("")  # Test write
         except Exception as e:
             print(f"Error ensuring CSV files exist: {str(e)}")
             raise
