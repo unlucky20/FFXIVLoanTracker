@@ -16,41 +16,41 @@ st.set_page_config(
 if 'fc_id' not in st.session_state:
     st.session_state.fc_id = "9228157111459014466"  # Default FC ID
 
-# Detect if we're in development mode
-is_dev = os.environ.get('REPL_SLUG', '').endswith('-dev')
-
 try:
     # Initialize data manager
     data_manager = DataManager(fc_id=st.session_state.fc_id)
     apply_custom_styles()
 
-    # Add data migration option in sidebar for development environment
-    if is_dev:
-        st.sidebar.markdown("---")
-        st.sidebar.subheader("Development Tools")
-        live_repl_id = st.sidebar.text_input("Live Repl ID", help="Enter the ID of your live deployment")
+    # Add data migration tools in sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Data Migration Tools")
+    live_repl_id = st.sidebar.text_input(
+        "Live Repl ID", 
+        value="lotusfc",  # Pre-fill with the live app ID
+        help="Enter the ID of your live deployment"
+    )
 
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("Import Live Data"):
-                if live_repl_id:
-                    if data_manager.import_data_from_live(live_repl_id):
-                        st.success("Successfully imported data from live instance!")
-                        st.rerun()
-                    else:
-                        st.error("Failed to import live data")
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("Import Live Data"):
+            if live_repl_id:
+                if data_manager.import_data_from_live(live_repl_id):
+                    st.success("Successfully imported data from live instance!")
+                    st.rerun()
                 else:
-                    st.error("Please enter the Live Repl ID")
+                    st.error("Failed to import live data")
+            else:
+                st.error("Please enter the Live Repl ID")
 
-        with col2:
-            if st.button("Export to Live"):
-                if live_repl_id:
-                    if data_manager.export_data_to_live(live_repl_id):
-                        st.success("Successfully exported data to live instance!")
-                    else:
-                        st.error("Failed to export data")
+    with col2:
+        if st.button("Export to Live"):
+            if live_repl_id:
+                if data_manager.export_data_to_live(live_repl_id):
+                    st.success("Successfully exported data to live instance!")
                 else:
-                    st.error("Please enter the Live Repl ID")
+                    st.error("Failed to export data")
+            else:
+                st.error("Please enter the Live Repl ID")
 
     # Main header
     st.markdown("<h1 class='main-header'>Lotus Free Company</h1>", unsafe_allow_html=True)
