@@ -303,14 +303,29 @@ try:
             if selected_member:
                 st.subheader(f"Member Details: {selected_member}")
 
-                # Add delete member button
-                if st.button("🗑️ Delete Member", type="secondary", key=f"delete_member_{selected_member}"):
-                    if st.button("⚠️ Confirm Deletion", key=f"confirm_delete_{selected_member}"):
-                        if data_manager.delete_member(selected_member):
-                            st.success(f"Member {selected_member} deleted successfully!")
+                # Add delete member button with proper state management
+                if f"delete_confirm_{selected_member}" not in st.session_state:
+                    st.session_state[f"delete_confirm_{selected_member}"] = False
+
+                if not st.session_state[f"delete_confirm_{selected_member}"]:
+                    if st.button("🗑️ Delete Member", type="secondary", key=f"delete_member_{selected_member}"):
+                        st.session_state[f"delete_confirm_{selected_member}"] = True
+                        st.rerun()
+                else:
+                    st.warning(f"Are you sure you want to delete {selected_member}? This cannot be undone.")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("⚠️ Yes, Delete", key=f"confirm_delete_{selected_member}"):
+                            if data_manager.delete_member(selected_member):
+                                st.success(f"Member {selected_member} deleted successfully!")
+                                st.session_state[f"delete_confirm_{selected_member}"] = False
+                                st.rerun()
+                            else:
+                                st.error("Failed to delete member")
+                    with col2:
+                        if st.button("❌ Cancel", key=f"cancel_delete_{selected_member}"):
+                            st.session_state[f"delete_confirm_{selected_member}"] = False
                             st.rerun()
-                        else:
-                            st.error("Failed to delete member")
 
                 # Show member's bids
                 member_bids = data_manager.get_member_bids(selected_member)
