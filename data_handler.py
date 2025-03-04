@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from datetime import datetime
 from lodestone_scraper import LodestoneScraper
+import shutil
 
 class DataManager:
     def __init__(self, fc_id="9228157111459014466"):
@@ -334,4 +335,20 @@ class DataManager:
             print(f"Error updating member donation notes: {str(e)}")
             return False
 
-import shutil
+    def delete_member(self, member_name):
+        """Delete a member and their associated data"""
+        try:
+            # Remove from members list
+            members_df = pd.read_csv(self.members_path)
+            members_df = members_df[members_df['name'] != member_name]
+            members_df.to_csv(self.members_path, index=False)
+
+            # Remove their bids
+            bids_df = pd.read_csv(self.bids_path)
+            bids_df = bids_df[bids_df['member_name'] != member_name]
+            bids_df.to_csv(self.bids_path, index=False)
+
+            return True
+        except Exception as e:
+            print(f"Error deleting member: {str(e)}")
+            return False

@@ -303,6 +303,15 @@ try:
             if selected_member:
                 st.subheader(f"Member Details: {selected_member}")
 
+                # Add delete member button
+                if st.button("🗑️ Delete Member", type="secondary", key=f"delete_member_{selected_member}"):
+                    if st.button("⚠️ Confirm Deletion", key=f"confirm_delete_{selected_member}"):
+                        if data_manager.delete_member(selected_member):
+                            st.success(f"Member {selected_member} deleted successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete member")
+
                 # Show member's bids
                 member_bids = data_manager.get_member_bids(selected_member)
                 if not member_bids.empty:
