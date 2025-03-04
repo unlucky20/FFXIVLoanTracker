@@ -351,9 +351,9 @@ try:
     st.markdown("---")
     st.markdown("<p style='text-align: center'>Lotus Free Company</p>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
+    col1, spacer, col2 = st.columns([1, 2, 1])
     with col1:
-        if st.button("📥 Export", key="export_btn", type="secondary", use_container_width=False):
+        if st.button("📥 Export", key="export_btn", type="secondary", use_container_width=True):
             zip_path = data_manager.export_data_to_zip()
             if zip_path:
                 with open(zip_path, 'rb') as f:
