@@ -4,6 +4,7 @@ from datetime import datetime
 from lodestone_scraper import LodestoneScraper
 import shutil
 import zipfile
+from git_sync import GitSync
 
 class DataManager:
     def __init__(self, fc_id="9228157111459014466"):
@@ -21,6 +22,11 @@ class DataManager:
         # Create backup directory
         backup_dir = os.path.join(self.data_dir, "backups")
         os.makedirs(backup_dir, mode=0o755, exist_ok=True)
+
+        # Initialize Git sync
+        self.git_sync = GitSync(self.data_dir)
+        self.git_sync.init_repo()
+        self.git_sync.pull_changes()  # Pull latest changes on startup
 
         self.ensure_csv_exists()
         self.lodestone = LodestoneScraper(fc_id)
@@ -122,26 +128,17 @@ class DataManager:
             print(f"Error getting donations: {str(e)}")
             return pd.DataFrame(columns=['member_name', 'amount', 'date', 'notes', 'timestamp'])
 
+    def sync_to_git(self):
+        """Sync changes to Git repository"""
+        return self.git_sync.commit_and_push()
+
     def add_donation(self, member_name, amount, notes=""):
         """Add a new donation record"""
         try:
-            df = pd.read_csv(self.donations_path)
-            current_date = datetime.now().strftime('%Y-%m-%d')
-
-            # Create unique timestamp based on date and current number of donations
-            timestamp = f"{current_date}_{len(df):03d}"
-
-            new_donation = {
-                'member_name': member_name,
-                'amount': amount,
-                'date': current_date,
-                'notes': notes,
-                'timestamp': timestamp
-            }
-
-            df = pd.concat([df, pd.DataFrame([new_donation])], ignore_index=True)
-            df.to_csv(self.donations_path, index=False)
-            return True
+            success = super().add_donation(member_name, amount, notes)
+            if success:
+                self.sync_to_git()
+            return success
         except Exception as e:
             print(f"Error adding donation: {str(e)}")
             return False
@@ -149,10 +146,10 @@ class DataManager:
     def delete_donation(self, timestamp):
         """Delete a donation record"""
         try:
-            df = self.migrate_timestamps()
-            df = df[df['timestamp'] != timestamp]
-            df.to_csv(self.donations_path, index=False)
-            return True
+            success = super().delete_donation(timestamp)
+            if success:
+                self.sync_to_git()
+            return success
         except Exception as e:
             print(f"Error deleting donation: {str(e)}")
             return False
@@ -160,10 +157,10 @@ class DataManager:
     def update_donation_notes(self, timestamp, new_notes):
         """Update donation notes"""
         try:
-            df = self.migrate_timestamps()
-            df.loc[df['timestamp'] == timestamp, 'notes'] = new_notes
-            df.to_csv(self.donations_path, index=False)
-            return True
+            success = super().update_donation_notes(timestamp, new_notes)
+            if success:
+                self.sync_to_git()
+            return success
         except Exception as e:
             print(f"Error updating donation notes: {str(e)}")
             return False
@@ -261,16 +258,14 @@ class DataManager:
     # Expense Methods
     def add_expense(self, amount, description, category, approved_by):
         """Add a new expense"""
-        df = pd.read_csv(self.expenses_path)
-        new_expense = {
-            'date': datetime.now().strftime('%Y-%m-%d'),
-            'amount': amount,
-            'description': description,
-            'category': category,
-            'approved_by': approved_by
-        }
-        df = pd.concat([df, pd.DataFrame([new_expense])], ignore_index=True)
-        df.to_csv(self.expenses_path, index=False)
+        try:
+            success = super().add_expense(amount, description, category, approved_by)
+            if success:
+                self.sync_to_git()
+            return success
+        except Exception as e:
+            print(f"Error adding expense: {str(e)}")
+            return False
 
     def get_expenses_list(self):
         """Get all expenses"""
@@ -289,17 +284,25 @@ class DataManager:
 
     def delete_expense(self, date, amount, description):
         """Delete an expense"""
-        df = pd.read_csv(self.expenses_path)
-        mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
-        df = df[~mask]
-        df.to_csv(self.expenses_path, index=False)
+        try:
+            success = super().delete_expense(date, amount, description)
+            if success:
+                self.sync_to_git()
+            return success
+        except Exception as e:
+            print(f"Error deleting expense: {str(e)}")
+            return False
 
     def update_expense_notes(self, date, amount, description, new_description):
         """Update expense description"""
-        df = pd.read_csv(self.expenses_path)
-        mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
-        df.loc[mask, 'description'] = new_description
-        df.to_csv(self.expenses_path, index=False)
+        try:
+            success = super().update_expense_notes(date, amount, description, new_description)
+            if success:
+                self.sync_to_git()
+            return success
+        except Exception as e:
+            print(f"Error updating expense notes: {str(e)}")
+            return False
 
     def get_member_donations(self, member_name):
         """Get all donations for a specific member"""
@@ -349,17 +352,10 @@ class DataManager:
     def delete_member(self, member_name):
         """Delete a member and their associated data"""
         try:
-            # Remove from members list
-            members_df = pd.read_csv(self.members_path)
-            members_df = members_df[members_df['name'] != member_name]
-            members_df.to_csv(self.members_path, index=False)
-
-            # Remove their bids
-            bids_df = pd.read_csv(self.bids_path)
-            bids_df = bids_df[bids_df['member_name'] != member_name]
-            bids_df.to_csv(self.bids_path, index=False)
-
-            return True
+            success = super().delete_member(member_name)
+            if success:
+                self.sync_to_git()
+            return success
         except Exception as e:
             print(f"Error deleting member: {str(e)}")
             return False
