@@ -130,7 +130,16 @@ class DataManager:
 
     def sync_to_git(self):
         """Sync changes to Git repository"""
-        return self.git_sync.commit_and_push()
+        try:
+            if self.git_sync.commit_and_push():
+                print("✅ Data synced to Git successfully")
+                return True
+            else:
+                print("❌ Failed to sync data to Git")
+                return False
+        except Exception as e:
+            print(f"❌ Error syncing to Git: {str(e)}")
+            return False
 
     def add_donation(self, member_name, amount, notes=""):
         """Add a new donation record"""
