@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import os
 from data_handler import DataManager
 from styles import apply_custom_styles
 from datetime import datetime
@@ -12,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize session state for FC ID and data migration
+# Initialize session state for FC ID
 if 'fc_id' not in st.session_state:
     st.session_state.fc_id = "9228157111459014466"  # Default FC ID
 
@@ -20,37 +19,6 @@ try:
     # Initialize data manager
     data_manager = DataManager(fc_id=st.session_state.fc_id)
     apply_custom_styles()
-
-    # Add data migration tools in sidebar
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("Data Migration Tools")
-    live_repl_id = st.sidebar.text_input(
-        "Live Repl ID", 
-        value="lotusfc",  # Pre-fill with the live app ID
-        help="Enter the ID of your live deployment"
-    )
-
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("Import Live Data"):
-            if live_repl_id:
-                if data_manager.import_data_from_live(live_repl_id):
-                    st.success("Successfully imported data from live instance!")
-                    st.rerun()
-                else:
-                    st.error("Failed to import live data")
-            else:
-                st.error("Please enter the Live Repl ID")
-
-    with col2:
-        if st.button("Export to Live"):
-            if live_repl_id:
-                if data_manager.export_data_to_live(live_repl_id):
-                    st.success("Successfully exported data to live instance!")
-                else:
-                    st.error("Failed to export data")
-            else:
-                st.error("Please enter the Live Repl ID")
 
     # Main header
     st.markdown("<h1 class='main-header'>Lotus Free Company</h1>", unsafe_allow_html=True)

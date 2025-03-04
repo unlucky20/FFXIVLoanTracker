@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-import shutil
 from datetime import datetime
 from lodestone_scraper import LodestoneScraper
 
@@ -18,6 +17,7 @@ class DataManager:
 
     def ensure_csv_exists(self):
         """Initialize CSV files if they don't exist"""
+        # Create data directory if it doesn't exist
         try:
             if not os.path.exists(self.data_dir):
                 os.makedirs(self.data_dir)
@@ -37,72 +37,6 @@ class DataManager:
         except Exception as e:
             print(f"Error ensuring CSV files exist: {str(e)}")
             raise
-
-    def import_data_from_live(self, live_repl_id):
-        """Import data from a live Replit instance"""
-        try:
-            live_data_dir = f"/home/runner/{live_repl_id}/data"
-            print(f"🔍 Attempting to import data from: {live_data_dir}")
-
-            if not os.path.exists(live_data_dir):
-                print(f"Live data directory not found: {live_data_dir}")
-
-                # Try alternative path
-                alt_live_data_dir = os.path.join(os.environ.get('REPL_HOME', ''), '..', live_repl_id, 'data')
-                print(f"Trying alternative path: {alt_live_data_dir}")
-
-                if os.path.exists(alt_live_data_dir):
-                    live_data_dir = alt_live_data_dir
-                else:
-                    return False
-
-            # Copy all CSV files from live to development
-            files_copied = 0
-            for file_name in ["donations.csv", "members.csv", "expenses.csv", "bids.csv"]:
-                src = os.path.join(live_data_dir, file_name)
-                dst = os.path.join(self.data_dir, file_name)
-                print(f"Copying {src} to {dst}")
-                if os.path.exists(src):
-                    shutil.copy2(src, dst)
-                    print(f"✅ Imported {file_name} from live instance")
-                    files_copied += 1
-                else:
-                    print(f"⚠️ Live file not found: {src}")
-
-            if files_copied > 0:
-                print(f"✅ Successfully imported {files_copied} files")
-                return True
-            else:
-                print("❌ No files were imported")
-                return False
-
-        except Exception as e:
-            print(f"❌ Error importing live data: {str(e)}")
-            print(f"Current directory: {os.getcwd()}")
-            print(f"Available directories: {os.listdir('/home/runner')}")
-            return False
-
-    def export_data_to_live(self, live_repl_id):
-        """Export data to a live Replit instance"""
-        try:
-            live_data_dir = f"/home/runner/{live_repl_id}/data"
-            if not os.path.exists(live_data_dir):
-                os.makedirs(live_data_dir)
-
-            # Copy all CSV files to live instance
-            for file_name in ["donations.csv", "members.csv", "expenses.csv", "bids.csv"]:
-                src = os.path.join(self.data_dir, file_name)
-                dst = os.path.join(live_data_dir, file_name)
-                if os.path.exists(src):
-                    shutil.copy2(src, dst)
-                    print(f"✅ Exported {file_name} to live instance")
-                else:
-                    print(f"⚠️ Source file not found: {src}")
-
-            return True
-        except Exception as e:
-            print(f"❌ Error exporting data: {str(e)}")
-            return False
 
     def backup_data(self):
         """Create a backup of all data files"""
