@@ -67,10 +67,12 @@ try:
             st.subheader("Recent Expenses")
             expenses = data_manager.get_expenses_list()
             if not expenses.empty:
-                # Sort by date in descending order to show most recent first
-                recent_expenses = expenses.sort_values('date', ascending=False).head(5)
+                # Take the 5 most recent expenses regardless of category
+                recent_expenses = expenses.head(5)
+                print(f"Debug: Displaying {len(recent_expenses)} recent expenses")
+
                 for idx, expense in recent_expenses.iterrows():
-                    with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil"):
+                    with st.expander(f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil"):
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
@@ -78,7 +80,7 @@ try:
 
                         # Only show return button if description doesn't indicate gil was already returned
                         if "Gil Returned" not in str(expense['description']):
-                            if st.button("💰 Return Gil", key=f"return_dashboard_{expense['date']}_{expense['amount']}_{idx}"):
+                            if st.button("💰 Return Gil", key=f"return_dashboard_{idx}"):
                                 if data_manager.return_expense_gil(
                                     expense['date'],
                                     expense['amount'],

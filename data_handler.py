@@ -318,8 +318,15 @@ class DataManager:
         try:
             df = pd.read_csv(self.expenses_path)
             if not df.empty:
-                # Sort by date in descending order
+                # Convert date column to datetime for proper sorting
+                df['date'] = pd.to_datetime(df['date'])
+                # Sort by date in descending order (newest first)
                 df = df.sort_values('date', ascending=False)
+                # Convert date back to string format
+                df['date'] = df['date'].dt.strftime('%Y-%m-%d')
+                print(f"Debug: Found {len(df)} expenses")
+                print("Debug: First 5 expenses:")
+                print(df.head())
             return df
         except Exception as e:
             print(f"Error getting expenses list: {str(e)}")
