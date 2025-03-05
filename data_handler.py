@@ -462,13 +462,6 @@ class DataManager:
     def return_expense_gil(self, expense_date, amount, description, approved_by):
         """Return gil from an expense back to the FC balance"""
         try:
-            # Add a donation entry for the returned amount
-            self.add_donation(
-                member_name=approved_by,
-                amount=amount,
-                notes=f"Gil returned from expense: {description}"
-            )
-
             # Update the expense to mark it as returned
             df = pd.read_csv(self.expenses_path)
             mask = (df['date'] == expense_date) & (df['amount'] == amount) & (df['description'] == description)
