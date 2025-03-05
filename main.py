@@ -227,10 +227,10 @@ try:
 
                     # Edit lotto number
                     new_number = st.number_input("Edit Lotto Number",
-                                                min_value=1,
-                                                value=int(bid['bid_number']),
-                                                key=f"edit_{bid['date']}_{bid['bid_number']}"
-                                                )
+                                                 min_value=1,
+                                                 value=int(bid['bid_number']),
+                                                 key=f"edit_{bid['date']}_{bid['bid_number']}"
+                                                 )
                     if st.button("Update Number", key=f"update_{bid['date']}_{bid['bid_number']}"):
                         data_manager.update_bid_number(bid['member_name'], bid['bid_number'], bid['date'], new_number)
                         st.success("Lotto number updated successfully!")
@@ -238,9 +238,9 @@ try:
 
                     # Delete lotto number
                     if st.button("🗑️ Delete Lotto Number",
-                                key=f"delete_{bid['date']}_{bid['bid_number']}",
-                                type="secondary"
-                                ):
+                                 key=f"delete_{bid['date']}_{bid['bid_number']}",
+                                 type="secondary"
+                                 ):
                         data_manager.delete_bid(bid['member_name'], bid['bid_number'], bid['date'])
                         st.success("Lotto number deleted successfully!")
                         st.rerun()
@@ -333,9 +333,10 @@ try:
                         else:
                             st.error("Failed to update description")
 
-                    # Return Gil button
+                    # Return Gil button and Delete expense button side by side
                     if "Gil Returned" not in str(expense['description']):
-                        with st.expander("Return Gil"): #added this
+                        col1, col2 = st.columns(2)
+                        with col1:
                             if st.button("💰 Return Gil", key=f"return_{unique_key}", type="primary"):
                                 if data_manager.return_expense_gil(
                                     expense['date'],
@@ -348,9 +349,20 @@ try:
                                     st.rerun()
                                 else:
                                     st.error("Failed to return gil")
-
-                    # Delete expense with unique key
-                    with st.expander("Delete Expense"): #added this
+                        with col2:
+                            if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
+                                if data_manager.delete_expense(
+                                    expense['date'],
+                                    expense['amount'],
+                                    expense['description'],
+                                    expense['timestamp']
+                                ):
+                                    st.success("Expense deleted successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("Failed to delete expense")
+                    else:
+                        # Only show delete button if gil is already returned
                         if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
                             if data_manager.delete_expense(
                                 expense['date'],
