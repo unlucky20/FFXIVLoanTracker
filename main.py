@@ -54,13 +54,16 @@ try:
                 donations = donations.sort_values(['date', 'timestamp'], ascending=[False, False])
                 for _, donation in donations.head(5).iterrows():
                     member_summary = data_manager.get_member_donation_summary(donation['member_name'])
-                    with st.expander(f"{donation['member_name']} - {donation['amount']:,.0f} gil"):
-                        st.write(f"Total Lifetime Donations: {member_summary['total_amount']:,.0f} gil")
-                        st.write(f"Number of Donations: {member_summary['donation_count']}")
-                        st.write(f"First Donation: {member_summary['first_donation']}")
-                        st.write(f"Latest Donation: {member_summary['last_donation']}")
-                        if pd.notna(donation['notes']) and donation['notes']:
-                            st.write(f"Notes: {donation['notes']}")
+                    if member_summary:  # Check if summary exists
+                        with st.expander(f"{donation['member_name']} - {donation['amount']:,.0f} gil"):
+                            st.write(f"Total Lifetime Donations: {member_summary['total_amount']:,.0f} gil")
+                            st.write(f"Number of Donations: {member_summary['donation_count']}")
+                            if member_summary['first_donation']:
+                                st.write(f"First Donation: {member_summary['first_donation']}")
+                            if member_summary['last_donation']:
+                                st.write(f"Latest Donation: {member_summary['last_donation']}")
+                            if pd.notna(donation['notes']) and donation['notes']:
+                                st.write(f"Notes: {donation['notes']}")
             else:
                 st.info("No recent donations")
 

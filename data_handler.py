@@ -91,8 +91,8 @@ class DataManager:
                 return False
 
             # Get list of backup folders
-            backup_folders = [d for d in os.listdir(backup_dir) 
-                            if os.path.isdir(os.path.join(backup_dir, d))]
+            backup_folders = [d for d in os.listdir(backup_dir)
+                             if os.path.isdir(os.path.join(backup_dir, d))]
 
             if not backup_folders:
                 print("No backups found")
@@ -390,6 +390,13 @@ class DataManager:
                     'donations': []
                 }
 
+            # Ensure type field exists and set default if missing
+            if 'type' not in member_donations.columns:
+                member_donations['type'] = 'donation'
+
+            # Fill any NaN values in type with 'donation'
+            member_donations['type'] = member_donations['type'].fillna('donation')
+
             # Only count actual donations, not returned gil
             actual_donations = member_donations[member_donations['type'] == 'donation']
 
@@ -405,8 +412,14 @@ class DataManager:
             }
         except Exception as e:
             print(f"Error getting member donation summary: {str(e)}")
-            return None
-    
+            return {
+                'total_amount': 0,
+                'donation_count': 0,
+                'first_donation': None,
+                'last_donation': None,
+                'donations': []
+            }
+
     def update_member_donations_notes(self, member_name, new_notes):
         """Update notes for all donations from a member"""
         try:
