@@ -1,6 +1,6 @@
 date,amount,description,category,approved_by,returned
 2025-03-05,18000000,Withdrawal by Deli for Housing bid 2/22/25,Housing,"Deli Lir
-Brynhildr",True
+Brynhildr",False
 2025-03-05,20000000,Moving gil to Zoe from Martzi for house bid on 2/22/25 ,Housing,"Martzia Droginovskya
 Brynhildr",False
 2025-03-05,18000000,Housing Bid  - 2/22/25,Housing,"Martzia Droginovskya

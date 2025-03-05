@@ -67,7 +67,7 @@ try:
             st.subheader("Recent Expenses")
             expenses = data_manager.get_expenses_list()
             if not expenses.empty:
-                for _, expense in expenses.sort_values('date', ascending=False).head(5).iterrows():
+                for idx, expense in expenses.sort_values('date', ascending=False).head(5).iterrows():
                     is_returned = pd.notna(expense.get('returned')) and expense['returned']
                     with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil" + 
                                    (" (Returned)" if is_returned else "")):
@@ -78,8 +78,9 @@ try:
 
                         # Show Return Gil button for housing expenses
                         if expense['category'] == 'Housing' and not is_returned:
-                            if st.button("↩️ Return Gil", 
-                                       key=f"return_dashboard_{expense['date']}_{expense['amount']}"):
+                            # Create a unique key using idx and a dashboard prefix
+                            unique_key = f"dashboard_return_{expense['date']}_{expense['amount']}_{idx}"
+                            if st.button("↩️ Return Gil", key=unique_key):
                                 if data_manager.return_housing_gil(
                                     expense['date'],
                                     expense['amount'],
