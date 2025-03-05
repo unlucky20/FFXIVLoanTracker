@@ -76,11 +76,16 @@ try:
                     timestamp = expense.get('timestamp', '').split('_')[1] if 'timestamp' in expense else ''
                     time_display = f"{expense['date']} {timestamp[:2]}:{timestamp[2:4]}:{timestamp[4:]}" if timestamp else expense['date']
 
-                    with st.expander(f"{time_display} - {expense['category']} - {expense['amount']:,.0f} gil"):
+                    # Create header with recipient info for Housing category
+                    header = (f"{time_display} - {expense['category']} - {expense['amount']:,.0f} gil" +
+                            (f" - Recipient: {expense['recipient']}" if expense['category'] == 'Housing' and pd.notna(expense['recipient']) else ""))
+
+                    with st.expander(header):
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
-                        st.write(f"Recipient: {expense['recipient']}")
+                        if expense['category'] == 'Housing' and pd.notna(expense['recipient']):
+                            st.write(f"Recipient: {expense['recipient']}")
                         st.write(f"Date: {expense['date']}")
 
                         # Only show return button if description doesn't indicate gil was already returned
@@ -255,7 +260,11 @@ try:
             )
             description = st.text_area("Description")
             approved_by = st.selectbox("Approved By", data_manager.get_all_members()['name'].tolist())
-            recipient = st.selectbox("Gil Recipient", data_manager.get_all_members()['name'].tolist())
+
+            # Only show recipient for Housing category
+            recipient = None
+            if category == "Housing":
+                recipient = st.selectbox("Gil Recipient", data_manager.get_all_members()['name'].tolist())
 
             if st.button("Record Expense"):
                 if amount > 0 and description and approved_by:
@@ -288,16 +297,22 @@ try:
             if selected_category != "All Categories":
                 expenses = expenses[expenses['category'] == selected_category]
 
-            for idx, expense in expenses.sort_values('date', ascending=False).iterrows():
+            for idx, expense in expenses.sort_values('timestamp', ascending=False).iterrows():
                 unique_key = f"{expense['date']}_{expense['amount']}_{idx}"
-                with st.expander(f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil"):
+
+                # Create header with recipient info for Housing category
+                header = (f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil" +
+                         (f" - Recipient: {expense['recipient']}" if expense['category'] == 'Housing' and pd.notna(expense['recipient']) else ""))
+
+                with st.expander(header):
                     st.write(f"Amount: {expense['amount']:,.0f} gil")
                     st.write(f"Category: {expense['category']}")
                     st.write(f"Approved by: {expense['approved_by']}")
-                    st.write(f"Recipient: {expense['recipient']}")
+                    if expense['category'] == 'Housing' and pd.notna(expense['recipient']):
+                        st.write(f"Recipient: {expense['recipient']}")
                     st.write(f"Date: {expense['date']}")
 
-                    # Edit description with unique key
+                    # Update description with unique key
                     new_description = st.text_area(
                         "Edit Description",
                         value=expense['description'],

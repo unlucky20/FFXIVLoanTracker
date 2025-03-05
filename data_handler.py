@@ -296,7 +296,7 @@ class DataManager:
         return df[df['member_name'] == member_name]
 
     # Expense Methods
-    def add_expense(self, amount, description, category, approved_by, recipient):
+    def add_expense(self, amount, description, category, approved_by, recipient=None):
         """Add a new expense"""
         try:
             df = pd.read_csv(self.expenses_path)
@@ -307,7 +307,7 @@ class DataManager:
                 'description': description,
                 'category': category,
                 'approved_by': approved_by,
-                'recipient': recipient,
+                'recipient': recipient if category == 'Housing' else None,
                 'timestamp': timestamp
             }
             df = pd.concat([df, pd.DataFrame([new_expense])], ignore_index=True)
