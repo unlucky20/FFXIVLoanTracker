@@ -80,6 +80,7 @@ try:
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
+                        st.write(f"Recipient: {expense['recipient']}")
                         st.write(f"Date: {expense['date']}")
 
                         # Only show return button if description doesn't indicate gil was already returned
@@ -244,6 +245,7 @@ try:
     elif page == "Expenses":
         st.subheader("FC Expenses")
 
+        # Record New Expense form
         with st.expander("➕ Record New Expense"):
             amount = st.number_input("Expense Amount (gil)", min_value=0, value=0)
             category = st.selectbox(
@@ -253,12 +255,15 @@ try:
             )
             description = st.text_area("Description")
             approved_by = st.selectbox("Approved By", data_manager.get_all_members()['name'].tolist())
+            recipient = st.selectbox("Gil Recipient", data_manager.get_all_members()['name'].tolist())
 
             if st.button("Record Expense"):
                 if amount > 0 and description and approved_by:
-                    data_manager.add_expense(amount, description, category, approved_by)
-                    st.success("Expense recorded successfully!")
-                    st.rerun()
+                    if data_manager.add_expense(amount, description, category, approved_by, recipient):
+                        st.success("Expense recorded successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to record expense")
                 else:
                     st.error("Please fill in all required fields")
 
@@ -289,6 +294,8 @@ try:
                     st.write(f"Amount: {expense['amount']:,.0f} gil")
                     st.write(f"Category: {expense['category']}")
                     st.write(f"Approved by: {expense['approved_by']}")
+                    st.write(f"Recipient: {expense['recipient']}")
+                    st.write(f"Date: {expense['date']}")
 
                     # Edit description with unique key
                     new_description = st.text_area(
@@ -297,7 +304,13 @@ try:
                         key=f"desc_{unique_key}"
                     )
                     if st.button("Update Description", key=f"update_{unique_key}"):
-                        if data_manager.update_expense_notes(expense['date'], expense['amount'], expense['description'], new_description):
+                        if data_manager.update_expense_notes(
+                            expense['date'],
+                            expense['amount'],
+                            expense['description'],
+                            new_description,
+                            expense['timestamp']
+                        ):
                             st.success("Description updated successfully!")
                             st.rerun()
                         else:

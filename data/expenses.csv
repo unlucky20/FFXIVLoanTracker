@@ -1,57 +1,13 @@
-date,amount,description,category,approved_by,timestamp
+date,amount,description,category,approved_by,timestamp,recipient
 2025-03-05,18000000,Withdrawal by Deli for Housing bid 2/22/25 (Gil Returned),Housing,"Deli Lir
-Brynhildr",2025-03-05_000000
-2025-03-05,20000000,Moving gil to Zoe from Martzi for house bid on 2/22/25  (Gil Returned),Housing,"Martzia Droginovskya
-Brynhildr",2025-03-05_000001
-2025-03-05,18000000,Housing Bid  - 2/22/25 (Gil Returned),Housing,"Martzia Droginovskya
-Brynhildr",2025-03-05_000002
+Brynhildr",2025-03-05_000000,
+2025-03-05,20000000,Moving gil to Zoe from Martzi for house bid on 2/22/25 ,Housing,"Martzia Droginovskya
+Brynhildr",2025-03-05_000001,
+2025-03-05,18000000,Housing Bid  - 2/22/25,Housing,"Martzia Droginovskya
+Brynhildr",2025-03-05_000002,
 2025-03-05,3000000,Withdrawn by Daisy Anger on 3/2/25 for housing bid ,Housing,"Martzia Droginovskya
-Brynhildr",2025-03-05_000003
+Brynhildr",2025-03-05_000003,
 2025-03-05,3200000,Withdrawn by Virena Tehp on 3/2/25 for housing bid ,Housing,"Martzia Droginovskya
-Brynhildr",2025-03-05_000004
+Brynhildr",2025-03-05_000004,
 2025-03-05,500000,Withdrawn by Vanilla Fox on 3/2/25 for housing bid,Housing,"Vanilla Fox
-Brynhildr",2025-03-05_000005
-2025-03-05,5000,yes (Gil Returned),Giveaways,"Martzia Droginovskya
-Brynhildr",2025-03-05_184303
-2025-03-05,5000,yes (Gil Returned),Events,"Martzia Droginovskya
-Brynhildr",2025-03-05_184315
-2025-03-05,5000,yes (Gil Returned),Crafting,"Martzia Droginovskya
-Brynhildr",2025-03-05_184319
-2025-03-05,5000,yes (Gil Returned),Other,"Martzia Droginovskya
-Brynhildr",2025-03-05_184322
-2025-03-05,5000,yes (Gil Returned),Other,"Martzia Droginovskya
-Brynhildr",2025-03-05_184710
-2025-03-05,5000,yes (Gil Returned),Giveaways,"Martzia Droginovskya
-Brynhildr",2025-03-05_184715
-2025-03-05,5000,yes (Gil Returned),Giveaways,"Martzia Droginovskya
-Brynhildr",2025-03-05_184802
-2025-03-05,5000,yess (Gil Returned),Events,"Martzia Droginovskya
-Brynhildr",2025-03-05_184810
-2025-03-05,5000,yess (Gil Returned),Events,"Martzia Droginovskya
-Brynhildr",2025-03-05_184848
-2025-03-05,5000,yess (Gil Returned),Giveaways,"Martzia Droginovskya
-Brynhildr",2025-03-05_184852
-2025-03-05,5000,yess (Gil Returned),Giveaways,"Martzia Droginovskya
-Brynhildr",2025-03-05_184927
-2025-03-05,5000,yess (Gil Returned),Events,"Martzia Droginovskya
-Brynhildr",2025-03-05_184932
-2025-03-05,5000,yess (Gil Returned),Crafting,"Martzia Droginovskya
-Brynhildr",2025-03-05_184937
-2025-03-05,5000,yess (Gil Returned),Other,"Martzia Droginovskya
-Brynhildr",2025-03-05_184941
-2025-03-05,5000,yes (Gil Returned),Giveaways,"Martzia Droginovskya
-Brynhildr",2025-03-05_190350
-2025-03-05,5000,yes (Gil Returned),Events,"Martzia Droginovskya
-Brynhildr",2025-03-05_190352
-2025-03-05,5000,yes (Gil Returned),Crafting,"Martzia Droginovskya
-Brynhildr",2025-03-05_190354
-2025-03-05,5000,yes (Gil Returned),Other,"Martzia Droginovskya
-Brynhildr",2025-03-05_190357
-2025-03-05,5000,yes,Giveaways,"Martzia Droginovskya
-Brynhildr",2025-03-05_191003
-2025-03-05,5000,yes,Events,"Martzia Droginovskya
-Brynhildr",2025-03-05_191006
-2025-03-05,5000,yes,Crafting,"Martzia Droginovskya
-Brynhildr",2025-03-05_191009
-2025-03-05,5000,yes,Other,"Martzia Droginovskya
-Brynhildr",2025-03-05_191012
+Brynhildr",2025-03-05_000005,

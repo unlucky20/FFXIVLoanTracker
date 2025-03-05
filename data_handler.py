@@ -38,7 +38,7 @@ class DataManager:
             default_files = {
                 self.members_path: ['name', 'join_date'],
                 self.donations_path: ['member_name', 'amount', 'date', 'notes', 'timestamp'],
-                self.expenses_path: ['date', 'amount', 'description', 'category', 'approved_by', 'timestamp'],
+                self.expenses_path: ['date', 'amount', 'description', 'category', 'approved_by', 'recipient', 'timestamp'],
                 self.bids_path: ['member_name', 'bid_number', 'date']
             }
 
@@ -49,9 +49,11 @@ class DataManager:
                 else:
                     # Verify file is readable and writable
                     with open(file_path, 'r') as f:
-                        pd.read_csv(f)  # Test read
-                    with open(file_path, 'a') as f:
-                        f.write("")  # Test write
+                        df = pd.read_csv(f)
+                        # Add new columns if they don't exist
+                        if file_path == self.expenses_path and 'recipient' not in df.columns:
+                            df['recipient'] = ''
+                            df.to_csv(file_path, index=False)
         except Exception as e:
             print(f"Error ensuring CSV files exist: {str(e)}")
             raise
@@ -294,7 +296,7 @@ class DataManager:
         return df[df['member_name'] == member_name]
 
     # Expense Methods
-    def add_expense(self, amount, description, category, approved_by):
+    def add_expense(self, amount, description, category, approved_by, recipient):
         """Add a new expense"""
         try:
             df = pd.read_csv(self.expenses_path)
@@ -305,6 +307,7 @@ class DataManager:
                 'description': description,
                 'category': category,
                 'approved_by': approved_by,
+                'recipient': recipient,
                 'timestamp': timestamp
             }
             df = pd.concat([df, pd.DataFrame([new_expense])], ignore_index=True)
