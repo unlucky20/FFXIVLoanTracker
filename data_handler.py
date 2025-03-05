@@ -109,8 +109,9 @@ class DataManager:
         try:
             df = pd.read_csv(self.donations_path)
             if 'timestamp' not in df.columns or df['timestamp'].isna().any():
+                # Generate unique timestamps for each row using index
                 df['timestamp'] = df.apply(
-                    lambda x: f"{x['date']}_{x.name:03d}",
+                    lambda x: f"{x['date']}_{x.name:06d}",
                     axis=1
                 )
                 df.to_csv(self.donations_path, index=False)
@@ -147,8 +148,8 @@ class DataManager:
             df = pd.read_csv(self.donations_path)
             current_date = datetime.now().strftime('%Y-%m-%d')
 
-            # Create unique timestamp based on date and current number of donations
-            timestamp = f"{current_date}_{len(df):03d}"
+            # Create unique timestamp based on date and current milliseconds
+            timestamp = f"{current_date}_{int(datetime.now().timestamp()*1000) % 1000000:06d}"
 
             new_donation = {
                 'member_name': member_name,

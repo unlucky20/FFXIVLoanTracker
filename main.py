@@ -136,7 +136,7 @@ try:
                     st.write("Transaction History:")
 
                     # Show individual transactions
-                    for donation in summary['donations']:
+                    for idx, donation in enumerate(summary['donations']):
                         col1, col2 = st.columns([3, 1])
                         with col1:
                             transaction_type = "Donation" if donation['type'] == 'donation' else "Returned Gil"
@@ -144,7 +144,8 @@ try:
                             if pd.notna(donation['notes']) and donation['notes']:
                                 st.write(f"Notes: {donation['notes']}")
                         with col2:
-                            if st.button("🗑️ Delete", key=f"delete_{donation['timestamp']}", type="secondary"):
+                            unique_key = f"delete_{donation['timestamp']}_{idx}"
+                            if st.button("🗑️ Delete", key=unique_key, type="secondary"):
                                 if data_manager.delete_donation(donation['timestamp']):
                                     st.success("Transaction deleted successfully!")
                                     st.rerun()
