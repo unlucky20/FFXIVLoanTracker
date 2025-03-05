@@ -344,7 +344,12 @@ class DataManager:
         df = pd.read_csv(self.expenses_path)
         if df.empty:
             return {category: 0 for category in self.expense_categories}
-        category_totals = df.groupby('category')['amount'].sum().to_dict()
+
+        # Only count non-returned expenses
+        df_active = df[~df['returned']]
+        category_totals = df_active.groupby('category')['amount'].sum().to_dict()
+
+        # Ensure all categories are present in the output
         for category in self.expense_categories:
             if category not in category_totals:
                 category_totals[category] = 0
