@@ -215,9 +215,11 @@ try:
 
             if st.button("Record Expense"):
                 if amount > 0 and description and approved_by:
-                    data_manager.add_expense(amount, description, category, approved_by)
-                    st.success("Expense recorded successfully!")
-                    st.rerun()
+                    if data_manager.add_expense(amount, description, category, approved_by):
+                        st.success("Expense recorded successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to record expense")
                 else:
                     st.error("Please fill in all required fields")
 
@@ -244,7 +246,14 @@ try:
 
             for idx, expense in expenses.sort_values('date', ascending=False).iterrows():
                 unique_key = f"{expense['date']}_{expense['amount']}_{idx}"
-                with st.expander(f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil"):
+
+                # Determine if the expense is returned
+                is_returned = pd.notna(expense.get('returned')) and expense['returned']
+
+                with st.expander(
+                    f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil" + 
+                    (" (Returned)" if is_returned else "")
+                ):
                     st.write(f"Amount: {expense['amount']:,.0f} gil")
                     st.write(f"Category: {expense['category']}")
                     st.write(f"Approved by: {expense['approved_by']}")
@@ -255,20 +264,47 @@ try:
                         value=expense['description'],
                         key=f"desc_{unique_key}"
                     )
-                    if st.button("Update Description", key=f"update_{unique_key}"):
-                        if data_manager.update_expense_notes(expense['date'], expense['amount'], expense['description'], new_description):
-                            st.success("Description updated successfully!")
-                            st.rerun()
-                        else:
-                            st.error("Failed to update description")
 
-                    # Delete expense with unique key
-                    if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
-                        if data_manager.delete_expense(expense['date'], expense['amount'], expense['description']):
-                            st.success("Expense deleted successfully!")
-                            st.rerun()
-                        else:
-                            st.error("Failed to delete expense")
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        if st.button("Update Description", key=f"update_{unique_key}"):
+                            if data_manager.update_expense_notes(
+                                expense['date'], 
+                                expense['amount'], 
+                                expense['description'], 
+                                new_description
+                            ):
+                                st.success("Description updated successfully!")
+                                st.rerun()
+                            else:
+                                st.error("Failed to update description")
+
+                    with col2:
+                        # Show Return Gil button only for housing expenses that haven't been returned
+                        if (expense['category'] == 'Housing' and not is_returned):
+                            if st.button("↩️ Return Gil", key=f"return_{unique_key}"):
+                                if data_manager.return_housing_gil(
+                                    expense['date'],
+                                    expense['amount'],
+                                    expense['description']
+                                ):
+                                    st.success("Gil returned successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("Failed to return gil")
+
+                    with col3:
+                        if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
+                            if data_manager.delete_expense(
+                                expense['date'],
+                                expense['amount'],
+                                expense['description']
+                            ):
+                                st.success("Expense deleted successfully!")
+                                st.rerun()
+                            else:
+                                st.error("Failed to delete expense")
         else:
             st.info("No expenses recorded yet")
 
