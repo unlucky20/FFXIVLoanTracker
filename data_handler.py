@@ -205,7 +205,12 @@ class DataManager:
         """Calculate total expenses from all recorded expenses"""
         try:
             df = pd.read_csv(self.expenses_path)
-            return df['amount'].sum() if not df.empty else 0
+            if df.empty:
+                return 0
+
+            # Only count expenses that haven't been returned
+            active_expenses = df[~df['description'].str.contains('Gil Returned', na=False)]
+            return active_expenses['amount'].sum() if not active_expenses.empty else 0
         except Exception as e:
             print(f"Error calculating total expenses: {e}")
             return 0
@@ -213,12 +218,14 @@ class DataManager:
     def get_dashboard_stats(self):
         """Get overall financial statistics for the dashboard"""
         try:
-            donations = self.get_total_fc_gil()
+            donations = self.get_donations()
+            total_donations = donations['amount'].sum() if not donations.empty else 0
+
             expenses = self.get_total_expenses()
-            fc_balance = donations - expenses
+            fc_balance = total_donations - expenses
 
             return {
-                'total_donations': donations,
+                'total_donations': total_donations,
                 'total_expenses': expenses,
                 'fc_balance': fc_balance
             }
@@ -315,7 +322,13 @@ class DataManager:
         df = pd.read_csv(self.expenses_path)
         if df.empty:
             return {category: 0 for category in self.expense_categories}
-        category_totals = df.groupby('category')['amount'].sum().to_dict()
+
+        # Only count active expenses (not returned)
+        active_expenses = df[~df['description'].str.contains('Gil Returned', na=False)]
+        if active_expenses.empty:
+            return {category: 0 for category in self.expense_categories}
+
+        category_totals = active_expenses.groupby('category')['amount'].sum().to_dict()
         for category in self.expense_categories:
             if category not in category_totals:
                 category_totals[category] = 0
