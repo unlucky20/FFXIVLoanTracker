@@ -60,15 +60,21 @@ class DataManager:
         """Create a backup of all data files"""
         try:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            backup_folder = os.path.join(self.data_dir, f"backups/backup_{timestamp}")
-            os.makedirs(os.path.dirname(backup_folder), exist_ok=True)
+            backup_folder = os.path.join(self.data_dir, "backups", f"backup_{timestamp}")
+            os.makedirs(backup_folder, exist_ok=True)
 
             # Copy all CSV files to backup folder
+            files_backed_up = 0
             for file_name in ["donations.csv", "members.csv", "expenses.csv", "bids.csv"]:
                 src = os.path.join(self.data_dir, file_name)
                 dst = os.path.join(backup_folder, file_name)
                 if os.path.exists(src):
                     shutil.copy2(src, dst)
+                    files_backed_up += 1
+
+            if files_backed_up == 0:
+                print("❌ No files were backed up")
+                return False
 
             print(f"✅ Backup created successfully at {backup_folder}")
             return True
@@ -79,9 +85,14 @@ class DataManager:
     def restore_latest_backup(self):
         """Restore the most recent backup"""
         try:
+            backup_dir = os.path.join(self.data_dir, "backups")
+            if not os.path.exists(backup_dir):
+                print("No backups directory found")
+                return False
+
             # Get list of backup folders
-            backup_folders = [d for d in os.listdir(os.path.join(self.data_dir,"backups")) 
-                            if os.path.isdir(os.path.join(os.path.join(self.data_dir,"backups"), d))]
+            backup_folders = [d for d in os.listdir(backup_dir) 
+                            if os.path.isdir(os.path.join(backup_dir, d))]
 
             if not backup_folders:
                 print("No backups found")
@@ -89,14 +100,20 @@ class DataManager:
 
             # Get most recent backup folder
             latest_backup = max(backup_folders)
-            backup_folder = os.path.join(os.path.join(self.data_dir,"backups"), latest_backup)
+            backup_folder = os.path.join(backup_dir, latest_backup)
 
             # Restore all CSV files
+            files_restored = 0
             for file_name in ["donations.csv", "members.csv", "expenses.csv", "bids.csv"]:
                 src = os.path.join(backup_folder, file_name)
                 dst = os.path.join(self.data_dir, file_name)
                 if os.path.exists(src):
                     shutil.copy2(src, dst)
+                    files_restored += 1
+
+            if files_restored == 0:
+                print("❌ No files were restored")
+                return False
 
             print(f"✅ Data restored from backup {latest_backup}")
             return True
@@ -447,7 +464,8 @@ class DataManager:
         """Import data from a zip file"""
         try:
             # Create a backup before import
-            self.backup_data()
+            if not self.backup_data():
+                raise Exception("Failed to create backup before import")
 
             with zipfile.ZipFile(zip_file, 'r') as zipf:
                 # Verify zip contains required files
@@ -457,13 +475,41 @@ class DataManager:
                 if not all(file in file_list for file in required_files):
                     raise ValueError("Zip file missing required data files")
 
-                # Extract files to data directory
-                for file_name in required_files:
-                    zipf.extract(file_name, self.data_dir)
+                # Extract files to a temporary directory first
+                temp_dir = os.path.join(self.data_dir, "temp_import")
+                os.makedirs(temp_dir, exist_ok=True)
 
-            return True
+                try:
+                    # Extract and validate each file
+                    for file_name in required_files:
+                        zipf.extract(file_name, temp_dir)
+                        temp_file = os.path.join(temp_dir, file_name)
+
+                        # Validate CSV file
+                        try:
+                            df = pd.read_csv(temp_file)
+                            if df.empty:
+                                raise ValueError(f"Empty data file: {file_name}")
+                        except Exception as e:
+                            raise ValueError(f"Invalid CSV file {file_name}: {str(e)}")
+
+                    # If all validations pass, move files to data directory
+                    for file_name in required_files:
+                        src = os.path.join(temp_dir, file_name)
+                        dst = os.path.join(self.data_dir, file_name)
+                        shutil.move(src, dst)
+
+                    print("✅ Data imported successfully")
+                    return True
+
+                finally:
+                    # Clean up temp directory
+                    if os.path.exists(temp_dir):
+                        shutil.rmtree(temp_dir)
+
         except Exception as e:
-            print(f"Error importing data: {str(e)}")
+            print(f"❌ Error importing data: {str(e)}")
             # Restore from backup if import fails
-            self.restore_latest_backup()
+            if not self.restore_latest_backup():
+                print("❌ Failed to restore from backup")
             return False
