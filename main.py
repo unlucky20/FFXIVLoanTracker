@@ -89,33 +89,33 @@ try:
                             st.write(f"Recipient: {expense['recipient']}")
                         st.write(f"Date: {expense['date']}")
 
-                    # Only show return button if description doesn't indicate gil was already returned
-                    if "Gil Returned" not in str(expense['description']):
-                        if st.button("💰 Return Gil", key=f"return_dashboard_{expense['timestamp']}"):
-                            if data_manager.return_expense_gil(
+                        # Only show return button if description doesn't indicate gil was already returned
+                        if "Gil Returned" not in str(expense['description']):
+                            if st.button("💰 Return Gil", key=f"return_dashboard_{expense['timestamp']}"):
+                                if data_manager.return_expense_gil(
+                                    expense['date'],
+                                    expense['amount'],
+                                    expense['description'],
+                                    expense['approved_by'],
+                                    expense['timestamp']
+                                ):
+                                    st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
+                                    st.rerun()
+                                else:
+                                    st.error("Failed to return gil")
+
+                        # Delete expense with unique timestamp key
+                        if st.button("🗑️ Delete", key=f"delete_dashboard_{expense['timestamp']}"):
+                            if data_manager.delete_expense(
                                 expense['date'],
                                 expense['amount'],
                                 expense['description'],
-                                expense['approved_by'],
                                 expense['timestamp']
                             ):
-                                st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
+                                st.success("Expense deleted successfully!")
                                 st.rerun()
                             else:
-                                st.error("Failed to return gil")
-
-                    # Delete expense with unique timestamp key
-                    if st.button("🗑️ Delete", key=f"delete_dashboard_{expense['timestamp']}"):
-                        if data_manager.delete_expense(
-                            expense['date'],
-                            expense['amount'],
-                            expense['description'],
-                            expense['timestamp']
-                        ):
-                            st.success("Expense deleted successfully!")
-                            st.rerun()
-                        else:
-                            st.error("Failed to delete expense")
+                                st.error("Failed to delete expense")
             else:
                 st.info("No recent expenses")
 
@@ -335,31 +335,33 @@ try:
 
                     # Return Gil button
                     if "Gil Returned" not in str(expense['description']):
-                        if st.button("💰 Return Gil", key=f"return_{unique_key}", type="primary"):
-                            if data_manager.return_expense_gil(
+                        with st.expander("Return Gil"): #added this
+                            if st.button("💰 Return Gil", key=f"return_{unique_key}", type="primary"):
+                                if data_manager.return_expense_gil(
+                                    expense['date'],
+                                    expense['amount'],
+                                    expense['description'],
+                                    expense['approved_by'],
+                                    expense['timestamp']
+                                ):
+                                    st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
+                                    st.rerun()
+                                else:
+                                    st.error("Failed to return gil")
+
+                    # Delete expense with unique key
+                    with st.expander("Delete Expense"): #added this
+                        if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
+                            if data_manager.delete_expense(
                                 expense['date'],
                                 expense['amount'],
                                 expense['description'],
-                                expense['approved_by'],
                                 expense['timestamp']
                             ):
-                                st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
+                                st.success("Expense deleted successfully!")
                                 st.rerun()
                             else:
-                                st.error("Failed to return gil")
-
-                    # Delete expense with unique key
-                    if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
-                        if data_manager.delete_expense(
-                            expense['date'],
-                            expense['amount'],
-                            expense['description'],
-                            expense['timestamp']
-                        ):
-                            st.success("Expense deleted successfully!")
-                            st.rerun()
-                        else:
-                            st.error("Failed to delete expense")
+                                st.error("Failed to delete expense")
         else:
             st.info("No expenses recorded yet")
 
