@@ -206,7 +206,16 @@ class DataManager:
             total_donations = donations_df['amount'].sum() if not donations_df.empty else 0
 
             # Calculate total expenses (excluding returned housing gil)
-            total_expenses = expenses_df[~expenses_df['returned']]['amount'].sum() if not expenses_df.empty else 0
+            total_expenses = 0
+            if not expenses_df.empty:
+                # Only count non-returned expenses
+                non_returned_expenses = expenses_df[~expenses_df['returned']]
+                total_expenses = non_returned_expenses['amount'].sum()
+
+            # Debug logging
+            print(f"Total donations: {total_donations}")
+            print(f"Total expenses (non-returned): {total_expenses}")
+            print(f"Final balance: {total_donations - total_expenses}")
 
             return total_donations - total_expenses
         except Exception as e:
