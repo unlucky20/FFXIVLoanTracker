@@ -197,7 +197,7 @@ class DataManager:
             return False
 
     def get_total_fc_gil(self):
-        """Calculate total FC gil from donations"""
+        """Calculate total FC gil from donations and expenses"""
         try:
             donations_df = pd.read_csv(self.donations_path)
             expenses_df = pd.read_csv(self.expenses_path)
@@ -205,19 +205,32 @@ class DataManager:
             # Calculate total donations
             total_donations = donations_df['amount'].sum() if not donations_df.empty else 0
 
-            # Calculate total expenses (excluding returned housing gil)
+            # Calculate total expenses (excluding returned gil)
             total_expenses = 0
             if not expenses_df.empty:
-                # Only count non-returned expenses
-                non_returned_expenses = expenses_df[~expenses_df['returned']]
+                # Ensure 'returned' column is properly handled
+                if 'returned' not in expenses_df.columns:
+                    expenses_df['returned'] = False
+
+                # Convert returned column to boolean
+                expenses_df['returned'] = expenses_df['returned'].map(
+                    {'true': True, 'false': False, True: True, False: False}
+                )
+
+                # Only count expenses that have not been returned
+                non_returned_expenses = expenses_df[expenses_df['returned'] == False]
                 total_expenses = non_returned_expenses['amount'].sum()
 
-            # Debug logging
-            print(f"Total donations: {total_donations}")
-            print(f"Total expenses (non-returned): {total_expenses}")
-            print(f"Final balance: {total_donations - total_expenses}")
+            # Calculate final balance
+            balance = total_donations - total_expenses
 
-            return total_donations - total_expenses
+            # Debug logging
+            print("FC Gil Balance Calculation:")
+            print(f"Total donations: {total_donations:,}")
+            print(f"Total non-returned expenses: {total_expenses:,}")
+            print(f"Final balance: {balance:,}")
+
+            return balance
         except Exception as e:
             print(f"Error calculating total FC gil: {str(e)}")
             return 0
