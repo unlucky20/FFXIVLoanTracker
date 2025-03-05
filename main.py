@@ -310,7 +310,8 @@ try:
                                 expense['date'],
                                 expense['amount'],
                                 expense['description'],
-                                expense['approved_by']
+                                expense['approved_by'],
+                                expense['timestamp']
                             ):
                                 st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
                                 st.rerun()
@@ -319,7 +320,12 @@ try:
 
                     # Delete expense with unique key
                     if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
-                        if data_manager.delete_expense(expense['date'], expense['amount'], expense['description']):
+                        if data_manager.delete_expense(
+                            expense['date'],
+                            expense['amount'],
+                            expense['description'],
+                            expense['timestamp']
+                        ):
                             st.success("Expense deleted successfully!")
                             st.rerun()
                         else:
