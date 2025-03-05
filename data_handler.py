@@ -199,6 +199,7 @@ class DataManager:
     def get_total_fc_gil(self):
         """Calculate total FC gil from donations and expenses"""
         try:
+            # Read the data files
             donations_df = pd.read_csv(self.donations_path)
             expenses_df = pd.read_csv(self.expenses_path)
 
@@ -208,29 +209,30 @@ class DataManager:
             # Calculate total expenses (excluding returned gil)
             total_expenses = 0
             if not expenses_df.empty:
-                # Ensure 'returned' column is properly handled
+                # Ensure expenses are counted correctly
                 if 'returned' not in expenses_df.columns:
                     expenses_df['returned'] = False
 
-                # Convert returned column to boolean
+                # Convert returned column to boolean, handling various formats
                 expenses_df['returned'] = expenses_df['returned'].map(
                     {'true': True, 'false': False, True: True, False: False}
-                )
+                ).fillna(False)
 
-                # Only count expenses that have not been returned
-                non_returned_expenses = expenses_df[expenses_df['returned'] == False]
-                total_expenses = non_returned_expenses['amount'].sum()
+                # Calculate active expenses (not returned)
+                active_expenses = expenses_df[expenses_df['returned'] == False]
+                total_expenses = active_expenses['amount'].sum()
 
             # Calculate final balance
             balance = total_donations - total_expenses
 
             # Debug logging
-            print("FC Gil Balance Calculation:")
+            print("\nFC Gil Balance Calculation:")
             print(f"Total donations: {total_donations:,}")
-            print(f"Total non-returned expenses: {total_expenses:,}")
+            print(f"Active expenses: {total_expenses:,}")
             print(f"Final balance: {balance:,}")
 
             return balance
+
         except Exception as e:
             print(f"Error calculating total FC gil: {str(e)}")
             return 0
@@ -380,11 +382,33 @@ class DataManager:
     def delete_expense(self, date, amount, description):
         """Delete an expense"""
         try:
+            # Read current expenses
             df = pd.read_csv(self.expenses_path)
-            mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
+
+            # Create precise mask for the specific expense
+            mask = (
+                (df['date'] == date) & 
+                (df['amount'] == amount) & 
+                (df['description'] == description)
+            )
+
+            # Verify we're only deleting one expense
+            if mask.sum() != 1:
+                print(f"Warning: Found {mask.sum()} matching expenses instead of 1")
+                return False
+
+            # Remove the expense and save
             df = df[~mask]
             df.to_csv(self.expenses_path, index=False)
+
+            # Sync to Git after successful deletion
             self.sync_to_git()
+
+            print(f"\nExpense Deletion:")
+            print(f"Date: {date}")
+            print(f"Amount: {amount:,}")
+            print(f"Description: {description}")
+
             return True
         except Exception as e:
             print(f"Error deleting expense: {str(e)}")
