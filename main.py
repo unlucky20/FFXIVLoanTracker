@@ -68,11 +68,27 @@ try:
             expenses = data_manager.get_expenses_list()
             if not expenses.empty:
                 for _, expense in expenses.sort_values('date', ascending=False).head(5).iterrows():
-                    with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil"):
+                    is_returned = pd.notna(expense.get('returned')) and expense['returned']
+                    with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil" + 
+                                   (" (Returned)" if is_returned else "")):
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
                         st.write(f"Date: {expense['date']}")
+
+                        # Show Return Gil button for housing expenses
+                        if expense['category'] == 'Housing' and not is_returned:
+                            if st.button("↩️ Return Gil", 
+                                       key=f"return_dashboard_{expense['date']}_{expense['amount']}"):
+                                if data_manager.return_housing_gil(
+                                    expense['date'],
+                                    expense['amount'],
+                                    expense['description']
+                                ):
+                                    st.success("Gil returned successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("Failed to return gil")
             else:
                 st.info("No recent expenses")
 
