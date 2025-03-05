@@ -1,35 +1,35 @@
-member_name,amount,date,notes,timestamp
+member_name,amount,date,notes,timestamp,type
 "Gimme Pickles
-Brynhildr",10000000,2025-03-04,First donation to the Company Chest ,2025-03-04_000
+Brynhildr",10000000,2025-03-04,First donation to the Company Chest ,2025-03-04_000,donation
 "Deli Lir
-Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_001
+Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_001,donation
 "Fizii Lovecraft
-Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_002
+Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_002,donation
 "Selene Ceadeur
-Brynhildr",1000000,2025-03-04,1/23/25,2025-03-04_003
+Brynhildr",1000000,2025-03-04,1/23/25,2025-03-04_003,donation
 "Mira Veitasch
-Brynhildr",200000,2025-03-04,1/23/25,2025-03-04_004
+Brynhildr",200000,2025-03-04,1/23/25,2025-03-04_004,donation
 "Mizfitt Nekomusume
-Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_005
+Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_005,donation
 "Martzia Droginovskya
-Brynhildr",1000000,2025-03-04,Terrath Achilles - 1/23/25,2025-03-04_006
+Brynhildr",1000000,2025-03-04,Terrath Achilles - 1/23/25,2025-03-04_006,donation
 "Zoe Droginovskya
-Brynhildr",50000000,2025-03-04,1/24/25,2025-03-04_007
+Brynhildr",50000000,2025-03-04,1/24/25,2025-03-04_007,donation
 "Ku'chee Ku
-Brynhildr",10000000,2025-03-04,1/24/25,2025-03-04_008
+Brynhildr",10000000,2025-03-04,1/24/25,2025-03-04_008,donation
 "Vae Bean
-Brynhildr",400000,2025-03-04,1/26/25,2025-03-04_009
+Brynhildr",400000,2025-03-04,1/26/25,2025-03-04_009,donation
 "Zero- Two
-Brynhildr",100000000,2025-03-04,1/26/25,2025-03-04_010
+Brynhildr",100000000,2025-03-04,1/26/25,2025-03-04_010,donation
 "Yayoi Shikibu
-Brynhildr",10000000,2025-03-04,1/31/25,2025-03-04_011
+Brynhildr",10000000,2025-03-04,1/31/25,2025-03-04_011,donation
 "Kara Ayanami
-Brynhildr",3200000,2025-03-05,3/2/25,2025-03-05_012
+Brynhildr",3200000,2025-03-05,3/2/25,2025-03-05_012,donation
 "Martzia Droginovskya
-Brynhildr",20000000,2025-03-05,2/22/25,2025-03-05_013
+Brynhildr",20000000,2025-03-05,2/22/25,2025-03-05_013,donation
 "Rozalie Brise
-Brynhildr",18000000,2025-03-05,2/23/25,2025-03-05_014
-"Daisy Anger
-Brynhildr",18000000,2025-03-05,2/24/25,2025-03-05_016
+Brynhildr",18000000,2025-03-05,2/23/25,2025-03-05_014,donation
 "Deli Lir
-Brynhildr",18000000,2025-03-05,,2025-03-05_016
+Brynhildr",18000000,2025-03-05,2/23/25,2025-03-05_015,donation
+"Daisy Anger
+Brynhildr",18000000,2025-03-05,2/24/25,2025-03-05_016,donation
