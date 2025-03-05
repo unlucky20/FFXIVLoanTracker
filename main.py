@@ -76,9 +76,10 @@ try:
                     timestamp = expense.get('timestamp', '').split('_')[1] if 'timestamp' in expense else ''
                     time_display = f"{expense['date']} {timestamp[:2]}:{timestamp[2:4]}:{timestamp[4:]}" if timestamp else expense['date']
 
-                    # Create header with recipient info for Housing category
+                    # Create header with optional recipient and returned status
                     header = (f"{time_display} - {expense['category']} - {expense['amount']:,.0f} gil" +
-                            (f" - Recipient: {expense['recipient']}" if expense['category'] == 'Housing' and pd.notna(expense['recipient']) else ""))
+                              (f" - {expense['recipient']}" if expense['category'] == 'Housing' and pd.notna(expense['recipient']) else "") +
+                              (" (Returned)" if "Gil Returned" in str(expense['description']) else ""))
 
                     with st.expander(header):
                         st.write(f"Description: {expense['description']}")
@@ -88,33 +89,33 @@ try:
                             st.write(f"Recipient: {expense['recipient']}")
                         st.write(f"Date: {expense['date']}")
 
-                        # Only show return button if description doesn't indicate gil was already returned
-                        if "Gil Returned" not in str(expense['description']):
-                            if st.button("💰 Return Gil", key=f"return_dashboard_{expense['timestamp']}"):
-                                if data_manager.return_expense_gil(
-                                    expense['date'],
-                                    expense['amount'],
-                                    expense['description'],
-                                    expense['approved_by'],
-                                    expense['timestamp']
-                                ):
-                                    st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
-                                    st.rerun()
-                                else:
-                                    st.error("Failed to return gil")
-
-                        # Delete expense with unique timestamp key
-                        if st.button("🗑️ Delete", key=f"delete_dashboard_{expense['timestamp']}"):
-                            if data_manager.delete_expense(
+                    # Only show return button if description doesn't indicate gil was already returned
+                    if "Gil Returned" not in str(expense['description']):
+                        if st.button("💰 Return Gil", key=f"return_dashboard_{expense['timestamp']}"):
+                            if data_manager.return_expense_gil(
                                 expense['date'],
                                 expense['amount'],
                                 expense['description'],
+                                expense['approved_by'],
                                 expense['timestamp']
                             ):
-                                st.success("Expense deleted successfully!")
+                                st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
                                 st.rerun()
                             else:
-                                st.error("Failed to delete expense")
+                                st.error("Failed to return gil")
+
+                    # Delete expense with unique timestamp key
+                    if st.button("🗑️ Delete", key=f"delete_dashboard_{expense['timestamp']}"):
+                        if data_manager.delete_expense(
+                            expense['date'],
+                            expense['amount'],
+                            expense['description'],
+                            expense['timestamp']
+                        ):
+                            st.success("Expense deleted successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete expense")
             else:
                 st.info("No recent expenses")
 
@@ -300,9 +301,10 @@ try:
             for idx, expense in expenses.sort_values('timestamp', ascending=False).iterrows():
                 unique_key = f"{expense['date']}_{expense['amount']}_{idx}"
 
-                # Create header with recipient info for Housing category
+                # Create header with optional recipient and returned status
                 header = (f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil" +
-                         (f" - Recipient: {expense['recipient']}" if expense['category'] == 'Housing' and pd.notna(expense['recipient']) else ""))
+                         (f" - {expense['recipient']}" if expense['category'] == 'Housing' and pd.notna(expense['recipient']) else "") +
+                         (" (Returned)" if "Gil Returned" in str(expense['description']) else ""))
 
                 with st.expander(header):
                     st.write(f"Amount: {expense['amount']:,.0f} gil")
