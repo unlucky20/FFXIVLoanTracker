@@ -247,24 +247,33 @@ try:
             if selected_category != "All Categories":
                 expenses = expenses[expenses['category'] == selected_category]
 
-            for _, expense in expenses.sort_values('date', ascending=False).iterrows():
+            for idx, expense in expenses.sort_values('date', ascending=False).iterrows():
+                unique_key = f"{expense['date']}_{expense['amount']}_{idx}"
                 with st.expander(f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil"):
                     st.write(f"Amount: {expense['amount']:,.0f} gil")
                     st.write(f"Category: {expense['category']}")
                     st.write(f"Approved by: {expense['approved_by']}")
 
-                    # Edit description
-                    new_description = st.text_area("Edit Description", value=expense['description'], key=f"desc_{expense['date']}_{expense['amount']}")
-                    if st.button("Update Description", key=f"update_{expense['date']}_{expense['amount']}"):
-                        data_manager.update_expense_notes(expense['date'], expense['amount'], expense['description'], new_description)
-                        st.success("Description updated successfully!")
-                        st.rerun()
+                    # Edit description with unique key
+                    new_description = st.text_area(
+                        "Edit Description",
+                        value=expense['description'],
+                        key=f"desc_{unique_key}"
+                    )
+                    if st.button("Update Description", key=f"update_{unique_key}"):
+                        if data_manager.update_expense_notes(expense['date'], expense['amount'], expense['description'], new_description):
+                            st.success("Description updated successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update description")
 
-                    # Delete expense
-                    if st.button("🗑️ Delete Expense", key=f"delete_{expense['date']}_{expense['amount']}", type="secondary"):
-                        data_manager.delete_expense(expense['date'], expense['amount'], expense['description'])
-                        st.success("Expense deleted successfully!")
-                        st.rerun()
+                    # Delete expense with unique key
+                    if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
+                        if data_manager.delete_expense(expense['date'], expense['amount'], expense['description']):
+                            st.success("Expense deleted successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete expense")
         else:
             st.info("No expenses recorded yet")
 
