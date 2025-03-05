@@ -38,7 +38,7 @@ class DataManager:
             default_files = {
                 self.members_path: ['name', 'join_date'],
                 self.donations_path: ['member_name', 'amount', 'date', 'notes', 'timestamp'],
-                self.expenses_path: ['date', 'amount', 'description', 'category', 'approved_by'],
+                self.expenses_path: ['date', 'amount', 'description', 'category', 'approved_by', 'timestamp'],
                 self.bids_path: ['member_name', 'bid_number', 'date']
             }
 
@@ -298,12 +298,14 @@ class DataManager:
         """Add a new expense"""
         try:
             df = pd.read_csv(self.expenses_path)
+            timestamp = datetime.now().strftime('%Y-%m-%d_%H%M%S')
             new_expense = {
                 'date': datetime.now().strftime('%Y-%m-%d'),
                 'amount': amount,
                 'description': description,
                 'category': category,
-                'approved_by': approved_by
+                'approved_by': approved_by,
+                'timestamp': timestamp
             }
             df = pd.concat([df, pd.DataFrame([new_expense])], ignore_index=True)
             df.to_csv(self.expenses_path, index=False)
@@ -318,19 +320,23 @@ class DataManager:
         try:
             df = pd.read_csv(self.expenses_path)
             if not df.empty:
-                # Convert date column to datetime for proper sorting
-                df['date'] = pd.to_datetime(df['date'])
-                # Sort by date in descending order (newest first)
-                df = df.sort_values('date', ascending=False)
-                # Convert date back to string format
-                df['date'] = df['date'].dt.strftime('%Y-%m-%d')
+                # If timestamp column doesn't exist, add it
+                if 'timestamp' not in df.columns:
+                    df['timestamp'] = df.apply(
+                        lambda x: f"{x['date']}_{x.name:06d}",
+                        axis=1
+                    )
+                    df.to_csv(self.expenses_path, index=False)
+
+                # Sort by timestamp in descending order (newest first)
+                df = df.sort_values('timestamp', ascending=False)
                 print(f"Debug: Found {len(df)} expenses")
                 print("Debug: First 5 expenses:")
                 print(df.head())
             return df
         except Exception as e:
             print(f"Error getting expenses list: {str(e)}")
-            return pd.DataFrame(columns=['date', 'amount', 'description', 'category', 'approved_by'])
+            return pd.DataFrame(columns=['date', 'amount', 'description', 'category', 'approved_by', 'timestamp'])
 
     def get_expenses_by_category(self):
         """Get expenses grouped by category"""

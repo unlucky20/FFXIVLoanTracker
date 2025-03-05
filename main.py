@@ -72,7 +72,11 @@ try:
                 print(f"Debug: Displaying {len(recent_expenses)} recent expenses")
 
                 for idx, expense in recent_expenses.iterrows():
-                    with st.expander(f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil"):
+                    # Format timestamp for display
+                    timestamp = expense.get('timestamp', '').split('_')[1] if 'timestamp' in expense else ''
+                    time_display = f"{expense['date']} {timestamp[:2]}:{timestamp[2:4]}:{timestamp[4:]}" if timestamp else expense['date']
+
+                    with st.expander(f"{time_display} - {expense['category']} - {expense['amount']:,.0f} gil"):
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
