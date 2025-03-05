@@ -73,6 +73,20 @@ try:
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
                         st.write(f"Date: {expense['date']}")
+
+                        # Only show return button if description doesn't indicate gil was already returned
+                        if "Gil Returned" not in str(expense['description']):
+                            if st.button("💰 Return Gil", key=f"return_dashboard_{expense['date']}_{expense['amount']}"):
+                                if data_manager.return_expense_gil(
+                                    expense['date'],
+                                    expense['amount'],
+                                    expense['description'],
+                                    expense['approved_by']
+                                ):
+                                    st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
+                                    st.rerun()
+                                else:
+                                    st.error("Failed to return gil")
             else:
                 st.info("No recent expenses")
 
@@ -266,6 +280,20 @@ try:
                             st.rerun()
                         else:
                             st.error("Failed to update description")
+
+                    # Return Gil button
+                    if "Gil Returned" not in str(expense['description']):
+                        if st.button("💰 Return Gil", key=f"return_{unique_key}", type="primary"):
+                            if data_manager.return_expense_gil(
+                                expense['date'],
+                                expense['amount'],
+                                expense['description'],
+                                expense['approved_by']
+                            ):
+                                st.success(f"{expense['amount']:,.0f} gil returned to FC balance!")
+                                st.rerun()
+                            else:
+                                st.error("Failed to return gil")
 
                     # Delete expense with unique key
                     if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
