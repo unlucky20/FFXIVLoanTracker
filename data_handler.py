@@ -396,7 +396,6 @@ class DataManager:
                     'donations': []
                 }
 
-
             # Sort donations by date
             member_donations = member_donations.sort_values('date', ascending=False)
 
@@ -482,6 +481,17 @@ class DataManager:
                 for file_name in required_files:
                     zipf.extract(file_name, self.data_dir)
 
+                # Ensure expenses.csv has returned column
+                expenses_df = pd.read_csv(os.path.join(self.data_dir, "expenses.csv"))
+                if 'returned' not in expenses_df.columns:
+                    expenses_df['returned'] = False
+                else:
+                    # Convert returned column to boolean
+                    expenses_df['returned'] = expenses_df['returned'].map({'true': True, 'false': False, True: True, False: False})
+                expenses_df.to_csv(os.path.join(self.data_dir, "expenses.csv"), index=False)
+
+            # Sync to Git after successful import
+            self.sync_to_git()
             return True
         except Exception as e:
             print(f"Error importing data: {str(e)}")
