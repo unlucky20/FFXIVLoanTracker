@@ -67,29 +67,12 @@ try:
             st.subheader("Recent Expenses")
             expenses = data_manager.get_expenses_list()
             if not expenses.empty:
-                for idx, expense in expenses.sort_values('date', ascending=False).head(5).iterrows():
-                    is_returned = pd.notna(expense.get('returned')) and expense['returned']
-                    with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil" + 
-                                   (" (Returned)" if is_returned else "")):
+                for _, expense in expenses.sort_values('date', ascending=False).head(5).iterrows():
+                    with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil"):
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
                         st.write(f"Approved by: {expense['approved_by']}")
                         st.write(f"Date: {expense['date']}")
-
-                        # Show Return Gil button for housing expenses
-                        if expense['category'] == 'Housing' and not is_returned:
-                            # Create a unique key using idx and a dashboard prefix
-                            unique_key = f"dashboard_return_{expense['date']}_{expense['amount']}_{idx}"
-                            if st.button("↩️ Return Gil", key=unique_key):
-                                if data_manager.return_housing_gil(
-                                    expense['date'],
-                                    expense['amount'],
-                                    expense['description']
-                                ):
-                                    st.success("Gil returned successfully!")
-                                    st.rerun()
-                                else:
-                                    st.error("Failed to return gil")
             else:
                 st.info("No recent expenses")
 
@@ -100,29 +83,23 @@ try:
         with st.expander("➕ Add New Donation"):
             members = data_manager.get_all_members()
             donor = st.selectbox("Select Member", members['name'].tolist(), key="donor_select_new_donation")
-            amount = st.number_input("Amount (gil)", min_value=0, value=0, key="amount_input_new_donation")
-            donation_type = st.selectbox(
-                "Type",
-                ["donation", "returned_gil"],
-                format_func=lambda x: "Donation" if x == "donation" else "Returned Gil",
-                key="type_select_new_donation"
-            )
+            amount = st.number_input("Donation Amount (gil)", min_value=0, value=0, key="amount_input_new_donation")
             notes = st.text_area("Notes", key="notes_input_new_donation")
 
-            if st.button("Record Transaction", key="submit_new_donation"):
+            if st.button("Record Donation", key="submit_new_donation"):
                 if donor and amount > 0:
-                    if data_manager.add_donation(donor, amount, notes, donation_type):
-                        st.success(f"{'Donation' if donation_type == 'donation' else 'Gil Return'} recorded successfully!")
+                    if data_manager.add_donation(donor, amount, notes):
+                        st.success("Donation recorded successfully!")
                         st.rerun()
                     else:
-                        st.error("Failed to record transaction")
+                        st.error("Failed to record donation")
                 else:
                     st.error("Please fill in all required fields")
 
         # Show donation history
         donations = data_manager.get_donations()
         if not donations.empty:
-            st.subheader("Transaction History")
+            st.subheader("Donation History")
 
             # Get unique members and their donation summaries
             unique_members = donations['member_name'].unique()
@@ -144,31 +121,42 @@ try:
                 member = member_data['member_name']
                 summary = member_data['summary']
 
-                with st.expander(f"{member} - Total Donations: {summary['total_amount']:,.0f} gil ({summary['donation_count']} donations)"):
-                    st.write(f"First Transaction: {summary['first_donation']}")
-                    st.write(f"Last Transaction: {summary['last_donation']}")
+                with st.expander(f"{member} - Total: {summary['total_amount']:,.0f} gil ({summary['donation_count']} donations)"):
+                    st.write(f"First Donation: {summary['first_donation']}")
+                    st.write(f"Last Donation: {summary['last_donation']}")
 
-                    # Show transaction history
+                    # Shared notes for all member's donations
+                    sample_donation = summary['donations'][0]
+                    new_notes = st.text_area(
+                        "Notes (applies to all donations)",
+                        value=sample_donation['notes'] if pd.notna(sample_donation['notes']) else "",
+                        key=f"notes_{member}"
+                    )
+
+                    if st.button("Update Notes", key=f"update_{member}"):
+                        if data_manager.update_member_donations_notes(member, new_notes):
+                            st.success("Notes updated successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update notes")
+
                     st.write("---")
-                    st.write("Transaction History:")
+                    st.write("Donation History:")
 
-                    # Show individual transactions
+                    # Show individual donations without individual notes
                     for donation in summary['donations']:
                         col1, col2 = st.columns([3, 1])
                         with col1:
-                            transaction_type = "Donation" if donation['type'] == 'donation' else "Returned Gil"
-                            st.write(f"{transaction_type}: {donation['amount']:,.0f} gil - Date: {donation['date']}")
-                            if pd.notna(donation['notes']) and donation['notes']:
-                                st.write(f"Notes: {donation['notes']}")
+                            st.write(f"Amount: {donation['amount']:,.0f} gil - Date: {donation['date']}")
                         with col2:
                             if st.button("🗑️ Delete", key=f"delete_{donation['timestamp']}", type="secondary"):
                                 if data_manager.delete_donation(donation['timestamp']):
-                                    st.success("Transaction deleted successfully!")
+                                    st.success("Donation deleted successfully!")
                                     st.rerun()
                                 else:
-                                    st.error("Failed to delete transaction")
+                                    st.error("Failed to delete donation")
         else:
-            st.info("No transactions recorded yet")
+            st.info("No donations recorded yet")
 
     # Housing Bids
     elif page == "Housing Bids":
@@ -232,11 +220,9 @@ try:
 
             if st.button("Record Expense"):
                 if amount > 0 and description and approved_by:
-                    if data_manager.add_expense(amount, description, category, approved_by):
-                        st.success("Expense recorded successfully!")
-                        st.rerun()
-                    else:
-                        st.error("Failed to record expense")
+                    data_manager.add_expense(amount, description, category, approved_by)
+                    st.success("Expense recorded successfully!")
+                    st.rerun()
                 else:
                     st.error("Please fill in all required fields")
 
@@ -263,14 +249,7 @@ try:
 
             for idx, expense in expenses.sort_values('date', ascending=False).iterrows():
                 unique_key = f"{expense['date']}_{expense['amount']}_{idx}"
-
-                # Determine if the expense is returned
-                is_returned = pd.notna(expense.get('returned')) and expense['returned']
-
-                with st.expander(
-                    f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil" + 
-                    (" (Returned)" if is_returned else "")
-                ):
+                with st.expander(f"{expense['date']} - {expense['category']} - {expense['amount']:,.0f} gil"):
                     st.write(f"Amount: {expense['amount']:,.0f} gil")
                     st.write(f"Category: {expense['category']}")
                     st.write(f"Approved by: {expense['approved_by']}")
@@ -281,47 +260,20 @@ try:
                         value=expense['description'],
                         key=f"desc_{unique_key}"
                     )
+                    if st.button("Update Description", key=f"update_{unique_key}"):
+                        if data_manager.update_expense_notes(expense['date'], expense['amount'], expense['description'], new_description):
+                            st.success("Description updated successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update description")
 
-                    col1, col2, col3 = st.columns(3)
-
-                    with col1:
-                        if st.button("Update Description", key=f"update_{unique_key}"):
-                            if data_manager.update_expense_notes(
-                                expense['date'], 
-                                expense['amount'], 
-                                expense['description'], 
-                                new_description
-                            ):
-                                st.success("Description updated successfully!")
-                                st.rerun()
-                            else:
-                                st.error("Failed to update description")
-
-                    with col2:
-                        # Show Return Gil button only for housing expenses that haven't been returned
-                        if (expense['category'] == 'Housing' and not is_returned):
-                            if st.button("↩️ Return Gil", key=f"return_{unique_key}"):
-                                if data_manager.return_housing_gil(
-                                    expense['date'],
-                                    expense['amount'],
-                                    expense['description']
-                                ):
-                                    st.success("Gil returned successfully!")
-                                    st.rerun()
-                                else:
-                                    st.error("Failed to return gil")
-
-                    with col3:
-                        if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
-                            if data_manager.delete_expense(
-                                expense['date'],
-                                expense['amount'],
-                                expense['description']
-                            ):
-                                st.success("Expense deleted successfully!")
-                                st.rerun()
-                            else:
-                                st.error("Failed to delete expense")
+                    # Delete expense with unique key
+                    if st.button("🗑️ Delete Expense", key=f"delete_{unique_key}", type="secondary"):
+                        if data_manager.delete_expense(expense['date'], expense['amount'], expense['description']):
+                            st.success("Expense deleted successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete expense")
         else:
             st.info("No expenses recorded yet")
 

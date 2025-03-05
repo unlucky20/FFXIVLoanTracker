@@ -38,7 +38,7 @@ class DataManager:
             default_files = {
                 self.members_path: ['name', 'join_date'],
                 self.donations_path: ['member_name', 'amount', 'date', 'notes', 'timestamp'],
-                self.expenses_path: ['date', 'amount', 'description', 'category', 'approved_by', 'returned'],
+                self.expenses_path: ['date', 'amount', 'description', 'category', 'approved_by'],
                 self.bids_path: ['member_name', 'bid_number', 'date']
             }
 
@@ -197,56 +197,17 @@ class DataManager:
             return False
 
     def get_total_fc_gil(self):
-        """Calculate total FC gil from donations and expenses"""
-        try:
-            # Read the data files
-            donations_df = pd.read_csv(self.donations_path)
-            expenses_df = pd.read_csv(self.expenses_path)
-
-            # Calculate total donations
-            total_donations = donations_df['amount'].sum() if not donations_df.empty else 0
-
-            # Calculate total expenses (excluding returned gil)
-            total_expenses = 0
-            if not expenses_df.empty:
-                # Ensure expenses are counted correctly
-                if 'returned' not in expenses_df.columns:
-                    expenses_df['returned'] = False
-
-                # Convert returned column to boolean, handling various formats
-                expenses_df['returned'] = expenses_df['returned'].map(
-                    {'true': True, 'false': False, True: True, False: False}
-                ).fillna(False)
-
-                # Calculate active expenses (not returned)
-                active_expenses = expenses_df[expenses_df['returned'] == False]
-                total_expenses = active_expenses['amount'].sum()
-
-            # Calculate final balance
-            balance = total_donations - total_expenses
-
-            # Debug logging
-            print("\nFC Gil Balance Calculation:")
-            print(f"Total donations: {total_donations:,}")
-            print(f"Active expenses: {total_expenses:,}")
-            print(f"Final balance: {balance:,}")
-
-            return balance
-
-        except Exception as e:
-            print(f"Error calculating total FC gil: {str(e)}")
-            return 0
+        """Calculate total FC gil from donations"""
+        df = self.get_donations()
+        return df['amount'].sum() if not df.empty else 0
 
     def get_total_expenses(self):
-        """Calculate total expenses from all recorded expenses (excluding returned gil)"""
+        """Calculate total expenses from all recorded expenses"""
         try:
             df = pd.read_csv(self.expenses_path)
-            if df.empty:
-                return 0
-            # Only count non-returned expenses
-            return df[~df['returned']]['amount'].sum()
+            return df['amount'].sum() if not df.empty else 0
         except Exception as e:
-            print(f"Error calculating total expenses: {str(e)}")
+            print(f"Error calculating total expenses: {e}")
             return 0
 
     def get_dashboard_stats(self):
@@ -335,8 +296,7 @@ class DataManager:
                 'amount': amount,
                 'description': description,
                 'category': category,
-                'approved_by': approved_by,
-                'returned': False  # Initialize as not returned
+                'approved_by': approved_by
             }
             df = pd.concat([df, pd.DataFrame([new_expense])], ignore_index=True)
             df.to_csv(self.expenses_path, index=False)
@@ -344,19 +304,6 @@ class DataManager:
             return True
         except Exception as e:
             print(f"Error adding expense: {str(e)}")
-            return False
-
-    def return_housing_gil(self, date, amount, description):
-        """Mark a housing expense as returned"""
-        try:
-            df = pd.read_csv(self.expenses_path)
-            mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
-            df.loc[mask, 'returned'] = True
-            df.to_csv(self.expenses_path, index=False)
-            self.sync_to_git()
-            return True
-        except Exception as e:
-            print(f"Error returning housing gil: {str(e)}")
             return False
 
     def get_expenses_list(self):
@@ -368,12 +315,7 @@ class DataManager:
         df = pd.read_csv(self.expenses_path)
         if df.empty:
             return {category: 0 for category in self.expense_categories}
-
-        # Only count non-returned expenses
-        df_active = df[~df['returned']]
-        category_totals = df_active.groupby('category')['amount'].sum().to_dict()
-
-        # Ensure all categories are present in the output
+        category_totals = df.groupby('category')['amount'].sum().to_dict()
         for category in self.expense_categories:
             if category not in category_totals:
                 category_totals[category] = 0
@@ -382,33 +324,11 @@ class DataManager:
     def delete_expense(self, date, amount, description):
         """Delete an expense"""
         try:
-            # Read current expenses
             df = pd.read_csv(self.expenses_path)
-
-            # Create precise mask for the specific expense
-            mask = (
-                (df['date'] == date) & 
-                (df['amount'] == amount) & 
-                (df['description'] == description)
-            )
-
-            # Verify we're only deleting one expense
-            if mask.sum() != 1:
-                print(f"Warning: Found {mask.sum()} matching expenses instead of 1")
-                return False
-
-            # Remove the expense and save
+            mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
             df = df[~mask]
             df.to_csv(self.expenses_path, index=False)
-
-            # Sync to Git after successful deletion
             self.sync_to_git()
-
-            print(f"\nExpense Deletion:")
-            print(f"Date: {date}")
-            print(f"Amount: {amount:,}")
-            print(f"Description: {description}")
-
             return True
         except Exception as e:
             print(f"Error deleting expense: {str(e)}")
@@ -532,17 +452,6 @@ class DataManager:
                 for file_name in required_files:
                     zipf.extract(file_name, self.data_dir)
 
-                # Ensure expenses.csv has returned column
-                expenses_df = pd.read_csv(os.path.join(self.data_dir, "expenses.csv"))
-                if 'returned' not in expenses_df.columns:
-                    expenses_df['returned'] = False
-                else:
-                    # Convert returned column to boolean
-                    expenses_df['returned'] = expenses_df['returned'].map({'true': True, 'false': False, True: True, False: False})
-                expenses_df.to_csv(os.path.join(self.data_dir, "expenses.csv"), index=False)
-
-            # Sync to Git after successful import
-            self.sync_to_git()
             return True
         except Exception as e:
             print(f"Error importing data: {str(e)}")
