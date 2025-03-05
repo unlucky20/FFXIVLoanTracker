@@ -355,11 +355,11 @@ class DataManager:
                 category_totals[category] = 0
         return category_totals
 
-    def delete_expense(self, date, amount, description):
+    def delete_expense(self, date, amount, description, timestamp):
         """Delete an expense"""
         try:
             df = pd.read_csv(self.expenses_path)
-            mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
+            mask = (df['timestamp'] == timestamp)
             df = df[~mask]
             df.to_csv(self.expenses_path, index=False)
             self.sync_to_git()
@@ -368,17 +368,33 @@ class DataManager:
             print(f"Error deleting expense: {str(e)}")
             return False
 
-    def update_expense_notes(self, date, amount, description, new_description):
+    def update_expense_notes(self, date, amount, description, new_description, timestamp):
         """Update expense description"""
         try:
             df = pd.read_csv(self.expenses_path)
-            mask = (df['date'] == date) & (df['amount'] == amount) & (df['description'] == description)
+            mask = (df['timestamp'] == timestamp)
             df.loc[mask, 'description'] = new_description
             df.to_csv(self.expenses_path, index=False)
             self.sync_to_git()
             return True
         except Exception as e:
             print(f"Error updating expense notes: {str(e)}")
+            return False
+
+    def return_expense_gil(self, expense_date, amount, description, approved_by, timestamp):
+        """Return gil from an expense back to the FC balance"""
+        try:
+            # Update the expense to mark it as returned
+            df = pd.read_csv(self.expenses_path)
+            mask = (df['timestamp'] == timestamp)
+            df.loc[mask, 'description'] = f"{description} (Gil Returned)"
+            df.to_csv(self.expenses_path, index=False)
+
+            # Sync changes
+            self.sync_to_git()
+            return True
+        except Exception as e:
+            print(f"Error returning expense gil: {str(e)}")
             return False
 
     def get_member_donations(self, member_name):
@@ -491,20 +507,4 @@ class DataManager:
             print(f"Error importing data: {str(e)}")
             # Restore from backup if import fails
             self.restore_latest_backup()
-            return False
-
-    def return_expense_gil(self, expense_date, amount, description, approved_by):
-        """Return gil from an expense back to the FC balance"""
-        try:
-            # Update the expense to mark it as returned
-            df = pd.read_csv(self.expenses_path)
-            mask = (df['date'] == expense_date) & (df['amount'] == amount) & (df['description'] == description)
-            df.loc[mask, 'description'] = f"{description} (Gil Returned)"
-            df.to_csv(self.expenses_path, index=False)
-
-            # Sync changes
-            self.sync_to_git()
-            return True
-        except Exception as e:
-            print(f"Error returning expense gil: {str(e)}")
             return False
