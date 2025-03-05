@@ -315,7 +315,15 @@ class DataManager:
 
     def get_expenses_list(self):
         """Get all expenses"""
-        return pd.read_csv(self.expenses_path)
+        try:
+            df = pd.read_csv(self.expenses_path)
+            if not df.empty:
+                # Sort by date in descending order
+                df = df.sort_values('date', ascending=False)
+            return df
+        except Exception as e:
+            print(f"Error getting expenses list: {str(e)}")
+            return pd.DataFrame(columns=['date', 'amount', 'description', 'category', 'approved_by'])
 
     def get_expenses_by_category(self):
         """Get expenses grouped by category"""

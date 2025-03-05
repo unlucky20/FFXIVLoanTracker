@@ -68,7 +68,8 @@ try:
             expenses = data_manager.get_expenses_list()
             if not expenses.empty:
                 # Sort by date in descending order to show most recent first
-                for idx, expense in expenses.sort_values('date', ascending=False).head(5).iterrows():
+                expenses = expenses.sort_values('date', ascending=False)
+                for idx, expense in expenses.head(5).iterrows():
                     with st.expander(f"{expense['category']} - {expense['amount']:,.0f} gil"):
                         st.write(f"Description: {expense['description']}")
                         st.write(f"Category: {expense['category']}")
