@@ -1,17 +1,35 @@
-member_name,amount,date,notes,timestamp
-"Zero- Two
-Brynhildr",100000000,2025-03-04,,2025-03-04_001
-"Ashe Kezama
-Brynhildr",5000,2025-03-04,,2025-03-04_002
-"Deli Lir
-Brynhildr",1500,2025-03-04,,2025-03-04_003
-"Petra Nova
-Brynhildr",5000,2025-03-04,,2025-03-04_004
-"Sin Liefdey
-Brynhildr",5000,2025-03-04,,2025-03-04_006
-"Chiyo Sky
-Brynhildr",5000,2025-03-04,,2025-03-04_007
-"Yiiro Five
-Brynhildr",5000,2025-03-04,,2025-03-04_008
+member_name,amount,date,notes,timestamp,type
 "Gimme Pickles
-Brynhildr",20000,2025-03-04,,2025-03-04_009
+Brynhildr",10000000,2025-03-04,First donation to the Company Chest ,2025-03-04_000,donation
+"Deli Lir
+Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_001,donation
+"Fizii Lovecraft
+Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_002,donation
+"Selene Ceadeur
+Brynhildr",1000000,2025-03-04,1/23/25,2025-03-04_003,donation
+"Mira Veitasch
+Brynhildr",200000,2025-03-04,1/23/25,2025-03-04_004,donation
+"Mizfitt Nekomusume
+Brynhildr",10000000,2025-03-04,1/23/25,2025-03-04_005,donation
+"Martzia Droginovskya
+Brynhildr",1000000,2025-03-04,Terrath Achilles - 1/23/25,2025-03-04_006,donation
+"Zoe Droginovskya
+Brynhildr",50000000,2025-03-04,1/24/25,2025-03-04_007,donation
+"Ku'chee Ku
+Brynhildr",10000000,2025-03-04,1/24/25,2025-03-04_008,donation
+"Vae Bean
+Brynhildr",400000,2025-03-04,1/26/25,2025-03-04_009,donation
+"Zero- Two
+Brynhildr",100000000,2025-03-04,1/26/25,2025-03-04_010,donation
+"Yayoi Shikibu
+Brynhildr",10000000,2025-03-04,1/31/25,2025-03-04_011,donation
+"Kara Ayanami
+Brynhildr",3200000,2025-03-05,3/2/25,2025-03-05_012,donation
+"Martzia Droginovskya
+Brynhildr",20000000,2025-03-05,2/22/25,2025-03-05_013,donation
+"Rozalie Brise
+Brynhildr",18000000,2025-03-05,2/23/25,2025-03-05_014,donation
+"Deli Lir
+Brynhildr",18000000,2025-03-05,2/23/25,2025-03-05_015,donation
+"Daisy Anger
+Brynhildr",18000000,2025-03-05,2/24/25,2025-03-05_016,donation

@@ -83,23 +83,29 @@ try:
         with st.expander("➕ Add New Donation"):
             members = data_manager.get_all_members()
             donor = st.selectbox("Select Member", members['name'].tolist(), key="donor_select_new_donation")
-            amount = st.number_input("Donation Amount (gil)", min_value=0, value=0, key="amount_input_new_donation")
+            amount = st.number_input("Amount (gil)", min_value=0, value=0, key="amount_input_new_donation")
+            donation_type = st.selectbox(
+                "Type",
+                ["donation", "returned_gil"],
+                format_func=lambda x: "Donation" if x == "donation" else "Returned Gil",
+                key="type_select_new_donation"
+            )
             notes = st.text_area("Notes", key="notes_input_new_donation")
 
-            if st.button("Record Donation", key="submit_new_donation"):
+            if st.button("Record Transaction", key="submit_new_donation"):
                 if donor and amount > 0:
-                    if data_manager.add_donation(donor, amount, notes):
-                        st.success("Donation recorded successfully!")
+                    if data_manager.add_donation(donor, amount, notes, donation_type):
+                        st.success(f"{'Donation' if donation_type == 'donation' else 'Gil Return'} recorded successfully!")
                         st.rerun()
                     else:
-                        st.error("Failed to record donation")
+                        st.error("Failed to record transaction")
                 else:
                     st.error("Please fill in all required fields")
 
         # Show donation history
         donations = data_manager.get_donations()
         if not donations.empty:
-            st.subheader("Donation History")
+            st.subheader("Transaction History")
 
             # Get unique members and their donation summaries
             unique_members = donations['member_name'].unique()
@@ -121,42 +127,31 @@ try:
                 member = member_data['member_name']
                 summary = member_data['summary']
 
-                with st.expander(f"{member} - Total: {summary['total_amount']:,.0f} gil ({summary['donation_count']} donations)"):
-                    st.write(f"First Donation: {summary['first_donation']}")
-                    st.write(f"Last Donation: {summary['last_donation']}")
+                with st.expander(f"{member} - Total Donations: {summary['total_amount']:,.0f} gil ({summary['donation_count']} donations)"):
+                    st.write(f"First Transaction: {summary['first_donation']}")
+                    st.write(f"Last Transaction: {summary['last_donation']}")
 
-                    # Shared notes for all member's donations
-                    sample_donation = summary['donations'][0]
-                    new_notes = st.text_area(
-                        "Notes (applies to all donations)",
-                        value=sample_donation['notes'] if pd.notna(sample_donation['notes']) else "",
-                        key=f"notes_{member}"
-                    )
-
-                    if st.button("Update Notes", key=f"update_{member}"):
-                        if data_manager.update_member_donations_notes(member, new_notes):
-                            st.success("Notes updated successfully!")
-                            st.rerun()
-                        else:
-                            st.error("Failed to update notes")
-
+                    # Show transaction history
                     st.write("---")
-                    st.write("Donation History:")
+                    st.write("Transaction History:")
 
-                    # Show individual donations without individual notes
+                    # Show individual transactions
                     for donation in summary['donations']:
                         col1, col2 = st.columns([3, 1])
                         with col1:
-                            st.write(f"Amount: {donation['amount']:,.0f} gil - Date: {donation['date']}")
+                            transaction_type = "Donation" if donation['type'] == 'donation' else "Returned Gil"
+                            st.write(f"{transaction_type}: {donation['amount']:,.0f} gil - Date: {donation['date']}")
+                            if pd.notna(donation['notes']) and donation['notes']:
+                                st.write(f"Notes: {donation['notes']}")
                         with col2:
                             if st.button("🗑️ Delete", key=f"delete_{donation['timestamp']}", type="secondary"):
                                 if data_manager.delete_donation(donation['timestamp']):
-                                    st.success("Donation deleted successfully!")
+                                    st.success("Transaction deleted successfully!")
                                     st.rerun()
                                 else:
-                                    st.error("Failed to delete donation")
+                                    st.error("Failed to delete transaction")
         else:
-            st.info("No donations recorded yet")
+            st.info("No transactions recorded yet")
 
     # Housing Bids
     elif page == "Housing Bids":

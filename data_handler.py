@@ -37,7 +37,7 @@ class DataManager:
             # Initialize CSV files with default structure
             default_files = {
                 self.members_path: ['name', 'join_date'],
-                self.donations_path: ['member_name', 'amount', 'date', 'notes', 'timestamp'],
+                self.donations_path: ['member_name', 'amount', 'date', 'notes', 'timestamp', 'type'],
                 self.expenses_path: ['date', 'amount', 'description', 'category', 'approved_by'],
                 self.bids_path: ['member_name', 'bid_number', 'date']
             }
@@ -117,7 +117,7 @@ class DataManager:
             return df
         except Exception as e:
             print(f"Error migrating timestamps: {str(e)}")
-            return pd.DataFrame(columns=['member_name', 'amount', 'date', 'notes', 'timestamp'])
+            return pd.DataFrame(columns=['member_name', 'amount', 'date', 'notes', 'timestamp', 'type'])
 
     def get_donations(self):
         """Get all donations with timestamp handling"""
@@ -126,7 +126,7 @@ class DataManager:
             return df.sort_values('date', ascending=False)
         except Exception as e:
             print(f"Error getting donations: {str(e)}")
-            return pd.DataFrame(columns=['member_name', 'amount', 'date', 'notes', 'timestamp'])
+            return pd.DataFrame(columns=['member_name', 'amount', 'date', 'notes', 'timestamp', 'type'])
 
     def sync_to_git(self):
         """Sync changes to Git repository"""
@@ -141,7 +141,7 @@ class DataManager:
             print(f"❌ Error syncing to Git: {str(e)}")
             return False
 
-    def add_donation(self, member_name, amount, notes=""):
+    def add_donation(self, member_name, amount, notes="", donation_type="donation"):
         """Add a new donation record"""
         try:
             df = pd.read_csv(self.donations_path)
@@ -155,7 +155,8 @@ class DataManager:
                 'amount': amount,
                 'date': current_date,
                 'notes': notes,
-                'timestamp': timestamp
+                'timestamp': timestamp,
+                'type': donation_type
             }
 
             df = pd.concat([df, pd.DataFrame([new_donation])], ignore_index=True)
@@ -199,7 +200,11 @@ class DataManager:
     def get_total_fc_gil(self):
         """Calculate total FC gil from donations"""
         df = self.get_donations()
-        return df['amount'].sum() if not df.empty else 0
+        if df.empty:
+            return 0
+        # Only count actual donations, not returned gil
+        donations_only = df[df['type'] == 'donation']
+        return donations_only['amount'].sum()
 
     def get_total_expenses(self):
         """Calculate total expenses from all recorded expenses"""
@@ -367,12 +372,15 @@ class DataManager:
                     'donations': []
                 }
 
+            # Only count actual donations, not returned gil
+            actual_donations = member_donations[member_donations['type'] == 'donation']
+
             # Sort donations by date
             member_donations = member_donations.sort_values('date', ascending=False)
 
             return {
-                'total_amount': member_donations['amount'].sum(),
-                'donation_count': len(member_donations),
+                'total_amount': actual_donations['amount'].sum(),
+                'donation_count': len(actual_donations),
                 'first_donation': member_donations['date'].iloc[-1],
                 'last_donation': member_donations['date'].iloc[0],
                 'donations': member_donations.to_dict('records')
