@@ -34,26 +34,62 @@ class DataManager:
     def ensure_csv_exists(self):
         """Initialize CSV files if they don't exist"""
         try:
-            # Initialize CSV files with default structure
+            # Initialize CSV files with default structure and sample data
             default_files = {
-                self.members_path: ['name', 'join_date'],
-                self.donations_path: ['member_name', 'amount', 'date', 'notes', 'timestamp'],
-                self.expenses_path: ['date', 'amount', 'description', 'category', 'approved_by', 'recipient', 'timestamp'],
-                self.bids_path: ['member_name', 'bid_number', 'date']
+                self.members_path: {
+                    'columns': ['name', 'join_date'],
+                    'sample': []
+                },
+                self.donations_path: {
+                    'columns': ['member_name', 'amount', 'date', 'notes', 'timestamp'],
+                    'sample': []
+                },
+                self.expenses_path: {
+                    'columns': ['date', 'amount', 'description', 'category', 'approved_by', 'recipient', 'timestamp'],
+                    'sample': []
+                },
+                self.bids_path: {
+                    'columns': ['member_name', 'bid_number', 'date'],
+                    'sample': []
+                }
             }
 
-            for file_path, columns in default_files.items():
-                if not os.path.exists(file_path):
-                    df = pd.DataFrame(columns=columns)
-                    df.to_csv(file_path, index=False)
-                else:
-                    # Verify file is readable and writable
-                    with open(file_path, 'r') as f:
-                        df = pd.read_csv(f)
-                        # Add new columns if they don't exist
-                        if file_path == self.expenses_path and 'recipient' not in df.columns:
-                            df['recipient'] = ''
+            for file_path, config in default_files.items():
+                try:
+                    if not os.path.exists(file_path):
+                        # Create new empty DataFrame with columns
+                        df = pd.DataFrame(columns=config['columns'])
+                        df.to_csv(file_path, index=False)
+                        print(f"Created new file: {file_path}")
+                    else:
+                        # Try to read existing file
+                        try:
+                            df = pd.read_csv(file_path)
+                            if len(df.columns) == 0:  # File exists but is empty
+                                df = pd.DataFrame(columns=config['columns'])
+                                df.to_csv(file_path, index=False)
+                                print(f"Reinitialized empty file: {file_path}")
+                        except pd.errors.EmptyDataError:
+                            # Handle empty file
+                            df = pd.DataFrame(columns=config['columns'])
                             df.to_csv(file_path, index=False)
+                            print(f"Reinitialized empty file: {file_path}")
+
+                        # Add any missing columns
+                        missing_cols = set(config['columns']) - set(df.columns)
+                        if missing_cols:
+                            for col in missing_cols:
+                                df[col] = None
+                            # Ensure columns are in the correct order
+                            df = df.reindex(columns=config['columns'])
+                            df.to_csv(file_path, index=False)
+                            print(f"Added missing columns to {file_path}: {missing_cols}")
+
+                except Exception as file_error:
+                    print(f"Error processing file {file_path}: {str(file_error)}")
+                    raise
+
+            return True
         except Exception as e:
             print(f"Error ensuring CSV files exist: {str(e)}")
             raise
